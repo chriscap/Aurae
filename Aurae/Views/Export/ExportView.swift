@@ -24,6 +24,9 @@ struct ExportView: View {
     private var allLogs: [HeadacheLog]
 
     @State private var viewModel = ExportViewModel()
+    @State private var showPaywall: Bool = false
+
+    @Environment(\.entitlementService) private var entitlementService
 
     var body: some View {
         NavigationStack {
@@ -35,7 +38,11 @@ struct ExportView: View {
                         dateRangeSection
                         logCountBadge
                         freeExportSection
-                        premiumLockedSection
+                        // Hide the locked card entirely once the user is Pro.
+                        // The full export button (Step 16) will appear in its place.
+                        if !entitlementService.isPro {
+                            premiumLockedSection
+                        }
                     }
                     .padding(Layout.screenPadding)
                 }
@@ -48,6 +55,9 @@ struct ExportView: View {
             }
             .onChange(of: allLogs) { _, newLogs in
                 viewModel.updateLogs(newLogs)
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
             }
         }
     }
@@ -215,7 +225,7 @@ struct ExportView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 AuraeButton("Upgrade to Aurae Pro", style: .secondary) {
-                    // Step 14: trigger RevenueCat paywall
+                    showPaywall = true
                 }
             }
             .padding(Layout.cardPadding)
@@ -350,6 +360,7 @@ private struct ExportPreviewWrapper: View {
     var body: some View {
         ExportView()
             .modelContainer(container)
+            .environment(\.entitlementService, EntitlementService.shared)
     }
 }
 

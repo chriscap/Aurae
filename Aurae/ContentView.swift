@@ -8,11 +8,14 @@
 //    0 — Home      — logging CTA (built: Step 3)
 //    1 — History   — log list + calendar (Step 10)
 //    2 — Insights  — premium pattern analysis (Step 15)
-//    3 — Settings  — export, preferences, disclaimer (Step 17)
+//    3 — Export    — PDF export, data controls (Step 12/17)
 //
-//  Placeholder tabs carry a consistent empty-state treatment so the
-//  tab bar looks correct during development. Each placeholder will be
-//  replaced by its real view in the appropriate build step.
+//  Entitlement gating (Step 14):
+//  - The Insights tab is always tappable.
+//  - When !entitlementService.isPro, tapping Insights presents PaywallView
+//    as a sheet instead of navigating into InsightsPlaceholderView.
+//  - A lock badge overlays the Insights tab icon to signal the locked state.
+//  - Placeholder tabs will be replaced by their real views in future steps.
 //
 
 import SwiftUI
@@ -20,7 +23,10 @@ import SwiftData
 
 struct ContentView: View {
 
+    @Environment(\.entitlementService) private var entitlementService
+
     @State private var selectedTab: Tab = .home
+    @State private var showPaywall: Bool = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -38,7 +44,7 @@ struct ContentView: View {
 
             InsightsPlaceholderView()
                 .tabItem {
-                    Label("Insights", systemImage: "chart.line.uptrend.xyaxis")
+                    Label("Insights", systemImage: insightsTabIcon)
                 }
                 .tag(Tab.insights)
 
@@ -49,6 +55,29 @@ struct ContentView: View {
                 .tag(Tab.settings)
         }
         .tint(Color.auraeTeal)
+        // Intercept tab selection for the locked Insights tab.
+        // onChange fires after selectedTab is already updated, so we check
+        // immediately and redirect to the paywall if needed.
+        .onChange(of: selectedTab) { _, newTab in
+            if newTab == .insights && !entitlementService.isPro {
+                // Snap back to whichever tab was previously shown so the
+                // locked tab doesn't appear selected while the paywall is up.
+                selectedTab = .home
+                showPaywall = true
+            }
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+    }
+
+    // MARK: - Derived
+
+    /// Shows a lock.badge overlay variant when the user is not on Pro.
+    /// SF Symbols does not have a combined chart+lock glyph, so we use
+    /// the standard chart icon and rely on the badge overlay below.
+    private var insightsTabIcon: String {
+        "chart.line.uptrend.xyaxis"
     }
 }
 
@@ -59,18 +88,16 @@ private enum Tab: Hashable {
 }
 
 // MARK: - Placeholder views
-//
-// These stand in until the real views are built. Each is a minimal but
-// correctly-styled screen — not a blank white box — so the tab bar can
-// be validated visually at any point during development.
 
 private struct InsightsPlaceholderView: View {
+    @Environment(\.entitlementService) private var entitlementService
+
     var body: some View {
         PlaceholderScreen(
             icon: "chart.line.uptrend.xyaxis",
             title: "Insights",
             subtitle: "Log 5 or more headaches to unlock pattern analysis.",
-            isLocked: true
+            isLocked: !entitlementService.isPro
         )
     }
 }
@@ -100,14 +127,28 @@ private struct PlaceholderScreen: View {
             Color.auraeBackground.ignoresSafeArea()
 
             VStack(spacing: Layout.itemSpacing) {
-                ZStack {
+                ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(Color.auraeLavender)
                         .frame(width: 72, height: 72)
 
-                    Image(systemName: isLocked ? "lock" : icon)
+                    Image(systemName: icon)
                         .font(.system(size: 28, weight: .light))
                         .foregroundStyle(Color.auraeTeal)
+                        .frame(width: 72, height: 72)
+
+                    // Lock badge — only when the feature is gated
+                    if isLocked {
+                        ZStack {
+                            Circle()
+                                .fill(Color.auraeNavy)
+                                .frame(width: 22, height: 22)
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(.white)
+                        }
+                        .offset(x: 4, y: -4)
+                    }
                 }
 
                 Text(title)
@@ -135,4 +176,5 @@ private struct PlaceholderScreen: View {
     )
     return ContentView()
         .modelContainer(container)
+        .environment(\.entitlementService, EntitlementService.shared)
 }

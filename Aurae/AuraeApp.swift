@@ -24,6 +24,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import RevenueCat
 
 @main
 struct AuraeApp: App {
@@ -53,6 +54,14 @@ struct AuraeApp: App {
             fatalError("Failed to create SwiftData ModelContainer: \(error)")
         }
 
+        // Configure RevenueCat before any entitlement check can occur.
+        // logLevel is debug-only — never expose verbose SDK logs in production
+        // builds since they may include purchase tokens.
+        #if DEBUG
+        Purchases.logLevel = .debug
+        #endif
+        Purchases.configure(withAPIKey: Secrets.revenueCatAPIKey)
+
         // Register interactive notification categories before any notification
         // is scheduled. This is idempotent — safe to call every launch.
         NotificationService.shared.registerCategories()
@@ -73,6 +82,12 @@ struct AuraeApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(\.entitlementService, EntitlementService.shared)
+                .task {
+                    // Refresh entitlement on every cold launch so isPro is
+                    // correct before the first gated view appears.
+                    await EntitlementService.shared.checkEntitlement()
+                }
         }
         .modelContainer(modelContainer)
     }
