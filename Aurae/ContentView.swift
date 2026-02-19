@@ -42,9 +42,9 @@ struct ContentView: View {
                 }
                 .tag(Tab.insights)
 
-            SettingsPlaceholderView()
+            ExportView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape")
+                    Label("Export", systemImage: "arrow.up.doc")
                 }
                 .tag(Tab.settings)
         }
