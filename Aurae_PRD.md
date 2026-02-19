@@ -5,10 +5,10 @@
 | | |
 |---|---|
 | **Document Type** | Product Requirements Document (PRD) |
-| **Version** | 1.0 — Initial Draft |
+| **Version** | 1.1 — In Development |
 | **Date** | February 2026 |
 | **Platform** | iOS (iPhone-first) |
-| **Stage** | Early Concept |
+| **Stage** | In Development |
 | **Monetization** | Freemium |
 
 ---
@@ -89,6 +89,16 @@ The home screen is the beating heart of Aurae. It must communicate calm, clarity
 
 On tap, the app immediately records a timestamped event, pulls weather data, reads available Apple Health data (heart rate, HRV, SpO2, steps), and reads sleep data. The user receives confirmation within 1–2 seconds. The entire interaction should take under 10 seconds.
 
+#### Active Headache State
+
+The app maintains an explicit active/resolved state for each headache. While a headache is active, the home screen changes:
+
+- The **Log Headache** button and severity selector are replaced by a **"Mark as Resolved"** CTA.
+- An **elapsed duration banner** is displayed (e.g. "Headache ongoing — 2h 14m").
+- This state persists until the user taps "Mark as Resolved" or manually resolves the log.
+
+On resolution, the app transitions back to the standard home screen and prompts the retrospective entry flow.
+
 ### 5.2 Automatic Data Capture at Onset
 
 At the moment of logging, Aurae silently attaches the following data to the event:
@@ -96,12 +106,16 @@ At the moment of logging, Aurae silently attaches the following data to the even
 #### Weather Data
 - Temperature, humidity, barometric pressure & trend (rising/falling), UV index, AQI, and general conditions.
 - Location is used only to query weather — not stored or shared.
+- Weather is sourced from **OpenWeatherMap** (Current Weather, UV Index, and Air Pollution endpoints). Requires an API key. The free tier covers all anticipated usage.
+- **V1 limitation:** Barometric pressure trend (rising/falling/stable) is a single-point heuristic derived from the current reading, not a rolling time-series trend. A true rolling trend is deferred to a future release.
 
 #### Apple Health Integration
-- Resting + current heart rate, HRV, SpO2, step count, and menstrual cycle phase.
+- Resting + current heart rate, HRV, SpO2 (stored as 0–100%), step count, and menstrual cycle phase.
+- If HealthKit permission is denied, all health fields are silently stored as nil. This is by design per Apple's privacy policy. The app remains fully functional.
 
 #### Sleep Data
 - Previous night's duration and stages via Apple Health or connected services (Oura, Garmin, Fitbit).
+- **Sleep capture window:** 10 PM the previous calendar day through 10 AM the current day. This matches Apple Health's own sleep window convention.
 - If no automatic data is available, the user is prompted during the post-headache retrospective.
 
 ### 5.3 Post-Headache Retrospective
@@ -224,6 +238,8 @@ No carousels. No banners. No notifications on the home screen. Just the action.
 
 Core logging is permanently free with no usage limits. Premium unlocks the intelligence and clinical layers. The gate is placed after users have seen genuine value from the free tier.
 
+Gated features are never hidden. Free users always see locked premium features in a disabled/locked state with a clear upgrade prompt. This ensures discoverability and removes ambiguity about what premium offers.
+
 | Feature | Free | Premium ✦ |
 |---|:---:|:---:|
 | Onset logging (unlimited) | ✓ | ✓ |
@@ -260,8 +276,8 @@ Core logging is permanently free with no usage limits. Premium unlocks the intel
 
 | Integration | Purpose | Notes |
 |---|---|---|
-| Apple HealthKit | Sleep, HR, HRV, SpO2, cycle | Explicit user permission per data type |
-| Weather API | Temp, humidity, pressure, AQI | Open-Meteo (free) or WeatherKit (Apple-native) |
+| Apple HealthKit | Sleep, HR, HRV, SpO2, cycle | Explicit user permission per data type. Permission denied handled silently with nil. |
+| OpenWeatherMap | Temp, humidity, pressure, UV index, AQI | Current Weather + UV Index + Air Pollution endpoints. Requires API key. Free tier sufficient. |
 | CoreLocation | Location at onset for weather | When-in-use only. Not stored. |
 | PDFKit / renderer | PDF report generation | On-device — no server round-trip |
 | RevenueCat / StoreKit 2 | Subscription management | RevenueCat recommended for analytics |
@@ -282,19 +298,22 @@ Core logging is permanently free with no usage limits. Premium unlocks the intel
 ### 9.1 First Launch & Onboarding
 
 1. Welcome screen — app name, one-line value prop, CTA: "Get Started".
-2. Permission prompts — Health access (explain each type), Location (when in use), Notifications.
-3. Optional quick questionnaire — headache frequency, existing diagnosis.
-4. Home screen — ready to log. First-time tooltip on the Log button.
+2. Optional quick questionnaire — headache frequency, existing diagnosis.
+3. Home screen — ready to log. First-time tooltip on the Log button.
+
+**Permission philosophy:** HealthKit, Location, and Notifications are all requested on the user's first log attempt — never on launch. Each permission prompt is preceded by an in-app explanation of why it is needed. The app is fully functional with all three permissions denied; all health and weather fields degrade gracefully to nil or manual entry.
 
 ### 9.2 Logging a Headache (Core Flow)
 
 1. User opens app. Home screen visible.
 2. User selects severity (optional — defaults to Moderate).
-3. User taps "Log Headache". Haptic feedback. Auto-capture fires in background.
+3. User taps "Log Headache". System prompts for permissions if this is the first log attempt. Haptic feedback. Auto-capture fires in background.
 4. Confirmation: "Logged at 2:34 PM. Stay hydrated." with a calm animation.
-5. Notification scheduled: "How's your headache? Tap to update." (1 hour later, configurable.)
-6. User marks headache as resolved. App prompts retrospective entry.
-7. Retrospective completed (or skipped). Log is sealed.
+5. Home screen transitions to active headache state — elapsed duration banner visible, "Mark as Resolved" CTA replaces the Log button.
+6. Follow-up notification scheduled: "How's your headache? Tap to update." Delay is configurable in Settings: 30 minutes, 1 hour (default), or 2 hours.
+7. User taps "Mark as Resolved". Active headache state clears. Notification cancelled automatically.
+8. App prompts retrospective entry.
+9. Retrospective completed (or skipped). Log is sealed.
 
 ### 9.3 Generating a PDF Report
 
@@ -334,16 +353,33 @@ Core logging is permanently free with no usage limits. Premium unlocks the intel
 
 ## 12. Open Questions
 
-- Which weather API? WeatherKit (Apple-native) vs. Open-Meteo (open source) vs. paid provider with superior barometric pressure data?
 - Will trigger analysis run fully on-device (Core ML) or involve a server component?
-- Should the app include a headache type taxonomy (tension, migraine, cluster, sinus) in V1?
-- What is the minimum viable data set for the AI to surface a meaningful first insight?
-- Should the PDF export be Aurae-branded or a neutral clinical document?
-- Is Apple Watch support a V1 requirement or Phase 2?
+- Should the app include a headache type taxonomy (tension, migraine, cluster, sinus) in V1 retrospective?
+- What is the minimum viable data set for the AI to surface a meaningful first insight? (Working assumption: 5 logged headaches.)
+- Should the PDF export be Aurae-branded or a neutral clinical document style?
 
 ---
 
-## 13. Appendix — Competitive Landscape
+## 13. Decision Log
+
+Decisions made during development that closed previously open questions or established constraints with product-level implications. Logged in the order resolved.
+
+| # | Decision | Rationale | Date |
+|---|---|---|---|
+| D-01 | **Weather provider: OpenWeatherMap** (Current Weather, UV Index, Air Pollution endpoints). Replaces Open-Meteo. Requires API key. | OpenWeatherMap provides AQI via the Air Pollution endpoint and UV Index as a separate endpoint, covering all required data fields. Free tier covers all anticipated usage. Open-Meteo was deprioritised due to AQI coverage gaps. | Feb 2026 |
+| D-02 | **Apple Watch logging: Phase 2.** Not included in V1. | Scope control. V1 priority is the core iPhone logging loop. Watch support adds significant surface area without validating the core product hypothesis. | Feb 2026 |
+| D-03 | **Pressure trend is a single-point heuristic in V1.** Rising/falling/stable is derived from the current reading, not a rolling window. | Building a true rolling trend requires time-series storage and a secondary API call cadence. This complexity is not justified for V1. Limitation is documented; a true trend can be added in a later release. | Feb 2026 |
+| D-04 | **Sleep capture window: 10 PM (previous day) → 10 AM (current day).** | Matches Apple Health's own sleep window convention, ensuring consistency with Health app data and reducing edge-case mismatches for users who sleep late. | Feb 2026 |
+| D-05 | **SpO2 stored as 0–100%.** | Display-friendly format. Avoids floating-point fraction storage and simplifies UI rendering. Consistent with how HealthKit surfaces the value to users. | Feb 2026 |
+| D-06 | **HealthKit read-denial is silent by design.** All HealthKit fields degrade to nil when permission is denied. No error shown to the user. | Apple's privacy policy prevents the app from detecting whether a denial is a true denial or simply no data. Surfacing an error would be misleading. Nil fields are handled gracefully throughout the app. | Feb 2026 |
+| D-07 | **Follow-up notification delay: configurable at 30 min / 1 hr / 2 hrs via Settings.** Default is 1 hour. | 1 hour is a reasonable default for most headaches, but sufferers with rapid-onset resolution or long-duration episodes need flexibility. Three fixed options reduce decision fatigue without requiring a freeform picker. | Feb 2026 |
+| D-08 | **Active headache state machine on home screen.** While a headache is active, the Log button and severity selector are replaced by an elapsed duration banner and "Mark as Resolved" CTA. | Prevents duplicate logging. Makes the ongoing state explicit. Ensures the user knows a headache is being tracked without needing to navigate to History. | Feb 2026 |
+| D-09 | **Permission requests deferred to first log attempt.** HealthKit, Location, and Notifications are not requested on launch. | Requesting permissions before demonstrating value reduces grant rates and creates a negative first impression. Requesting at the moment of need — with inline explanation — produces higher acceptance and clearer context. | Feb 2026 |
+| D-10 | **Gated features always visible in locked state.** Premium features are never hidden from free users. | Hiding features removes discoverability and weakens the upgrade value proposition. Showing locked states with upgrade prompts communicates premium value and supports conversion. | Feb 2026 |
+
+---
+
+## 14. Appendix — Competitive Landscape
 
 | App | Strengths | Weaknesses vs Aurae |
 |---|---|---|
