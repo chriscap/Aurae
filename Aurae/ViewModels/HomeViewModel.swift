@@ -11,10 +11,8 @@
 //  - Background capture tasks (weather, health) are fired concurrently with
 //    async let and update the persisted log once results arrive. The UI never
 //    waits for them — confirmation is shown the moment the log is inserted.
-//  - Services (WeatherService, HealthKitService, LocationService) do not exist
-//    yet. Their call sites are stubbed with a realistic async delay so the full
-//    concurrency flow compiles and runs correctly today. Replacing a stub with
-//    a real service requires changing one line in `fireBackgroundCapture`.
+//  - Step 4 complete: captureHealth() calls HealthKitService.shared.snapshot().
+//  - Step 5 (WeatherService) and Step 6 (LocationService) remain stubbed.
 //
 
 import SwiftUI
@@ -189,7 +187,6 @@ final class HomeViewModel {
 
     /// Runs all captures concurrently. Returns a `CaptureResult` regardless of
     /// individual failures — a failed capture produces nil.
-    /// Steps 4–6 will replace each stub with the real service call.
     private nonisolated func performCaptures() async -> CaptureResult {
         async let weatherResult: WeatherSnapshot? = captureWeather()
         async let healthResult: HealthSnapshot? = captureHealth()
@@ -197,16 +194,19 @@ final class HomeViewModel {
         return CaptureResult(weather: weather, health: health)
     }
 
-    // Step 6 replacement point: LocationService.requestCurrentLocation()
+    // Step 6 replacement point: WeatherService.capture(location:)
     private nonisolated func captureWeather() async -> WeatherSnapshot? {
         try? await Task.sleep(for: .milliseconds(200))
         return nil
     }
 
-    // Step 4 replacement point: HealthKitService.snapshot()
+    // Step 4 — live HealthKit snapshot. Returns nil gracefully if the user
+    // has denied all permissions or HealthKit is unavailable on this device.
     private nonisolated func captureHealth() async -> HealthSnapshot? {
-        try? await Task.sleep(for: .milliseconds(150))
-        return nil
+        let snapshot = await HealthKitService.shared.snapshot()
+        // Return nil rather than an empty snapshot so the caller can
+        // distinguish "no data captured" from "service not called".
+        return snapshot.hasAnyData ? snapshot : nil
     }
 
     // -------------------------------------------------------------------------
