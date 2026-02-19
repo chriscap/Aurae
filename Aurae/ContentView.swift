@@ -30,7 +30,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.home)
 
-            HistoryPlaceholderView()
+            HistoryView()
                 .tabItem {
                     Label("History", systemImage: "calendar")
                 }
@@ -63,16 +63,6 @@ private enum Tab: Hashable {
 // These stand in until the real views are built. Each is a minimal but
 // correctly-styled screen — not a blank white box — so the tab bar can
 // be validated visually at any point during development.
-
-private struct HistoryPlaceholderView: View {
-    var body: some View {
-        PlaceholderScreen(
-            icon: "calendar",
-            title: "History",
-            subtitle: "Your headache timeline will appear here."
-        )
-    }
-}
 
 private struct InsightsPlaceholderView: View {
     var body: some View {
