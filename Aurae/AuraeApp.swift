@@ -72,9 +72,53 @@ struct AuraeApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
         .modelContainer(modelContainer)
+    }
+}
+
+// MARK: - RootView
+
+/// Wraps ContentView and gates it behind a full-screen onboarding cover.
+///
+/// `@AppStorage("hasCompletedOnboarding")` persists to UserDefaults under the
+/// key "hasCompletedOnboarding". The cover is shown on first launch (value is
+/// false) and never again after the user completes or skips onboarding.
+///
+/// Placed here rather than inside ContentView to keep ContentView focused on
+/// tab navigation. RootView is the single place that owns the launch gate.
+private struct RootView: View {
+
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
+    /// Two-way binding that maps `hasCompletedOnboarding` onto
+    /// `isPresented` for the full-screen cover.
+    ///
+    /// isPresented = true  when hasCompletedOnboarding = false  (show cover)
+    /// isPresented = false when hasCompletedOnboarding = true   (dismiss cover)
+    ///
+    /// Setting isPresented = false from inside the cover (i.e., when onComplete
+    /// fires and sets hasCompletedOnboarding = true) updates the AppStorage value
+    /// and causes SwiftUI to dismiss the cover on the next render pass.
+    private var showOnboarding: Binding<Bool> {
+        Binding(
+            get: { !hasCompletedOnboarding },
+            set: { isShowing in
+                if !isShowing {
+                    hasCompletedOnboarding = true
+                }
+            }
+        )
+    }
+
+    var body: some View {
+        ContentView()
+            .fullScreenCover(isPresented: showOnboarding) {
+                OnboardingView {
+                    hasCompletedOnboarding = true
+                }
+            }
     }
 }
 
