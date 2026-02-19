@@ -10,12 +10,13 @@
 //    2 — Insights  — premium pattern analysis (Step 15)
 //    3 — Export    — PDF export, data controls (Step 12/17)
 //
-//  Entitlement gating (Step 14):
-//  - The Insights tab is always tappable.
-//  - When !entitlementService.isPro, tapping Insights presents PaywallView
-//    as a sheet instead of navigating into InsightsPlaceholderView.
-//  - A lock badge overlays the Insights tab icon to signal the locked state.
-//  - Placeholder tabs will be replaced by their real views in future steps.
+//  Entitlement gating (Step 14 → 15):
+//  - The Insights tab is always navigable — no tab-level intercept.
+//  - InsightsView owns its own locked-state rendering when !isPro:
+//    a blurred overlay + "Unlock Insights" CTA that presents PaywallView.
+//  - This is cleaner than intercepting tab selection here because it avoids
+//    the one-frame selectedTab snap-back flicker and keeps all Insights-gating
+//    logic colocated in InsightsView.
 //
 
 import SwiftUI
@@ -26,7 +27,6 @@ struct ContentView: View {
     @Environment(\.entitlementService) private var entitlementService
 
     @State private var selectedTab: Tab = .home
-    @State private var showPaywall: Bool = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -42,9 +42,9 @@ struct ContentView: View {
                 }
                 .tag(Tab.history)
 
-            InsightsPlaceholderView()
+            InsightsView()
                 .tabItem {
-                    Label("Insights", systemImage: insightsTabIcon)
+                    Label("Insights", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(Tab.insights)
 
@@ -55,29 +55,6 @@ struct ContentView: View {
                 .tag(Tab.settings)
         }
         .tint(Color.auraeTeal)
-        // Intercept tab selection for the locked Insights tab.
-        // onChange fires after selectedTab is already updated, so we check
-        // immediately and redirect to the paywall if needed.
-        .onChange(of: selectedTab) { _, newTab in
-            if newTab == .insights && !entitlementService.isPro {
-                // Snap back to whichever tab was previously shown so the
-                // locked tab doesn't appear selected while the paywall is up.
-                selectedTab = .home
-                showPaywall = true
-            }
-        }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
-        }
-    }
-
-    // MARK: - Derived
-
-    /// Shows a lock.badge overlay variant when the user is not on Pro.
-    /// SF Symbols does not have a combined chart+lock glyph, so we use
-    /// the standard chart icon and rely on the badge overlay below.
-    private var insightsTabIcon: String {
-        "chart.line.uptrend.xyaxis"
     }
 }
 
@@ -88,19 +65,8 @@ private enum Tab: Hashable {
 }
 
 // MARK: - Placeholder views
-
-private struct InsightsPlaceholderView: View {
-    @Environment(\.entitlementService) private var entitlementService
-
-    var body: some View {
-        PlaceholderScreen(
-            icon: "chart.line.uptrend.xyaxis",
-            title: "Insights",
-            subtitle: "Log 5 or more headaches to unlock pattern analysis.",
-            isLocked: !entitlementService.isPro
-        )
-    }
-}
+//
+// SettingsPlaceholderView stays until Step 17 ships the real Settings screen.
 
 private struct SettingsPlaceholderView: View {
     var body: some View {
@@ -137,7 +103,6 @@ private struct PlaceholderScreen: View {
                         .foregroundStyle(Color.auraeTeal)
                         .frame(width: 72, height: 72)
 
-                    // Lock badge — only when the feature is gated
                     if isLocked {
                         ZStack {
                             Circle()
