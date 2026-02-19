@@ -161,9 +161,17 @@ final class HomeViewModel {
         isLogging    = false
 
         // Schedule follow-up notification asynchronously — does not block UI.
-        let logID = log.id
+        // preferredDelay is fetched inside the Task so it reflects any
+        // UserDefaults value the user may have changed in Settings.
+        let logID     = log.id
+        let severity  = log.severity
+        let onsetTime = log.onsetTime
         Task {
-            await NotificationService.shared.scheduleFollowUp(for: logID)
+            await NotificationService.shared.scheduleFollowUp(
+                logID:     logID,
+                severity:  severity,
+                onsetTime: onsetTime
+            )
         }
 
         // Enrich the log with weather + health data in the background.
