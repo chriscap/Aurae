@@ -12,7 +12,7 @@
 //    async let and update the persisted log once results arrive. The UI never
 //    waits for them — confirmation is shown the moment the log is inserted.
 //  - Step 4 complete: captureHealth() calls HealthKitService.shared.snapshot().
-//  - Step 5 (WeatherService) and Step 6 (LocationService) remain stubbed.
+//  - Steps 5 & 6 complete: captureWeather() calls LocationService then WeatherService.
 //
 
 import SwiftUI
@@ -194,10 +194,16 @@ final class HomeViewModel {
         return CaptureResult(weather: weather, health: health)
     }
 
-    // Step 6 replacement point: WeatherService.capture(location:)
+    // Steps 5 & 6 — request location then fetch weather. Returns nil gracefully
+    // if location permission is denied or the OWM API call fails.
     private nonisolated func captureWeather() async -> WeatherSnapshot? {
-        try? await Task.sleep(for: .milliseconds(200))
-        return nil
+        guard let coordinate = await LocationService.shared.requestLocation() else {
+            return nil
+        }
+        return await WeatherService.shared.capture(
+            latitude:  coordinate.latitude,
+            longitude: coordinate.longitude
+        )
     }
 
     // Step 4 — live HealthKit snapshot. Returns nil gracefully if the user
