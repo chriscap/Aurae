@@ -1,0 +1,154 @@
+//
+//  HeadacheLog.swift
+//  Aurae
+//
+//  Primary SwiftData model. One instance represents a single headache episode
+//  from onset through resolution and retrospective enrichment.
+//
+//  Relationships:
+//   - weather:       @Relationship(.cascade) — deletes the snapshot with the log
+//   - health:        @Relationship(.cascade)
+//   - retrospective: @Relationship(.cascade)
+//
+//  The model is intentionally flat: related objects are separate @Model classes
+//  (not embedded structs) so SwiftData can query and persist them independently.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class HeadacheLog {
+
+    // MARK: - Identity
+
+    /// Stable identifier. Generated at the moment of onset and never changed.
+    @Attribute(.unique) var id: UUID
+
+    // MARK: - Core event
+
+    /// When the headache started — set at the moment the user taps "Log Headache".
+    var onsetTime: Date
+
+    /// When the headache ended. Nil while the headache is still active.
+    var resolvedTime: Date?
+
+    /// Severity on a 1–5 scale (1 = Mild, 5 = Worst).
+    /// Default is 3 (Moderate) when the user taps without adjusting the selector.
+    var severity: Int
+
+    /// True while the headache episode is ongoing (resolvedTime == nil).
+    /// This flag is denormalised to simplify predicate queries for active logs.
+    var isActive: Bool
+
+    // MARK: - Auto-captured context
+
+    /// Weather data captured at onset. Nil if the weather fetch failed or
+    /// location permission was denied.
+    @Relationship(deleteRule: .cascade)
+    var weather: WeatherSnapshot?
+
+    /// Apple Health snapshot captured at onset. Nil if HealthKit access was
+    /// denied or no recent readings were available.
+    @Relationship(deleteRule: .cascade)
+    var health: HealthSnapshot?
+
+    // MARK: - Post-headache detail
+
+    /// Retrospective data filled in after resolution. Nil until the user
+    /// opens the retrospective flow.
+    @Relationship(deleteRule: .cascade)
+    var retrospective: RetrospectiveEntry?
+
+    // MARK: - Metadata
+
+    /// Timestamp when this record was created in SwiftData (equals onsetTime
+    /// for fresh logs; may differ for retrospectively added entries).
+    var createdAt: Date
+
+    /// Timestamp of the most recent write to this record.
+    var updatedAt: Date
+
+    // MARK: - Init
+
+    init(
+        id: UUID = UUID(),
+        onsetTime: Date = .now,
+        severity: Int = 3,
+        weather: WeatherSnapshot? = nil,
+        health: HealthSnapshot? = nil,
+        retrospective: RetrospectiveEntry? = nil
+    ) {
+        precondition((1...5).contains(severity), "Severity must be 1–5, got \(severity)")
+        self.id            = id
+        self.onsetTime     = onsetTime
+        self.resolvedTime  = nil
+        self.severity      = severity
+        self.isActive      = true
+        self.weather       = weather
+        self.health        = health
+        self.retrospective = retrospective
+        self.createdAt     = .now
+        self.updatedAt     = .now
+    }
+}
+
+// MARK: - Lifecycle helpers
+
+extension HeadacheLog {
+
+    /// Marks the headache as resolved at the given time.
+    /// Call this when the user taps "Mark as Resolved".
+    func resolve(at time: Date = .now) {
+        resolvedTime = time
+        isActive     = false
+        updatedAt    = .now
+    }
+
+    /// Duration of the episode. Returns nil while the headache is active.
+    var duration: TimeInterval? {
+        guard let resolved = resolvedTime else { return nil }
+        return resolved.timeIntervalSince(onsetTime)
+    }
+
+    /// Formatted duration string (e.g. "2h 15m"). Nil while active.
+    var formattedDuration: String? {
+        guard let d = duration else { return nil }
+        let totalMinutes = Int(d / 60)
+        let hours   = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        switch (hours, minutes) {
+        case (0, let m): return "\(m)m"
+        case (let h, 0): return "\(h)h"
+        default:         return "\(hours)h \(minutes)m"
+        }
+    }
+
+    /// Returns the `SeverityLevel` enum equivalent.
+    /// Clamps to valid range defensively.
+    var severityLevel: SeverityLevel {
+        SeverityLevel(rawValue: max(1, min(5, severity))) ?? .moderate
+    }
+}
+
+// MARK: - Predicate helpers
+
+extension HeadacheLog {
+
+    /// A predicate that matches only currently active (unresolved) logs.
+    static var activeLogsPredicate: Predicate<HeadacheLog> {
+        #Predicate<HeadacheLog> { $0.isActive == true }
+    }
+
+    /// A predicate that matches resolved logs within a given date range.
+    static func logsPredicate(from start: Date, to end: Date) -> Predicate<HeadacheLog> {
+        #Predicate<HeadacheLog> {
+            $0.onsetTime >= start && $0.onsetTime <= end
+        }
+    }
+
+    /// A predicate that matches logs at or above a given minimum severity.
+    static func logsPredicate(minimumSeverity: Int) -> Predicate<HeadacheLog> {
+        #Predicate<HeadacheLog> { $0.severity >= minimumSeverity }
+    }
+}
