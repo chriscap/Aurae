@@ -14,6 +14,7 @@
 		7295A07A2F46CA4D000F614B /* Exceptions for "Aurae" folder in "Aurae" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Config/Secrets.example.txt,
 				Info.plist,
 			);
 			target = 72959FE22F46A5C9000F614B /* Aurae */;
@@ -269,6 +270,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Aurae/Info.plist;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Aurae uses your location at the moment you log a headache to capture local weather conditions. Your location is never stored or shared.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -303,6 +305,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Aurae/Info.plist;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Aurae uses your location at the moment you log a headache to capture local weather conditions. Your location is never stored or shared.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
