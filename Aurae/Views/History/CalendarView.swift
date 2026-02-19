@@ -291,9 +291,11 @@ struct DayDetailSheet: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: Layout.itemSpacing) {
                         ForEach(logs) { log in
-                            // NavigationLink to LogDetailView added in Step 11.
-                            LogCard(viewModel: cardViewModel(log))
-                                .padding(.horizontal, Layout.screenPadding)
+                            NavigationLink(destination: LogDetailView(log: log)) {
+                                LogCard(viewModel: cardViewModel(log))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, Layout.screenPadding)
                         }
                         Spacer(minLength: Layout.sectionSpacing)
                     }

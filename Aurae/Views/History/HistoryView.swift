@@ -154,13 +154,11 @@ struct HistoryView: View {
     // MARK: Log row with swipe actions
 
     private func logRow(for log: HeadacheLog) -> some View {
-        // Step 11 will replace this with a NavigationLink to LogDetailView.
-        // Using a ZStack overlay for the swipe affordance — List's native
-        // swipeActions only work inside List, which we avoid here to maintain
-        // custom card styling and padding. Instead we use a custom swipe gesture.
-        // For MVP we use a contextMenu for delete + open retrospective.
-        LogCard(viewModel: viewModel.cardViewModel(for: log))
-            .contextMenu {
+        NavigationLink(destination: LogDetailView(log: log)) {
+            LogCard(viewModel: viewModel.cardViewModel(for: log))
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
                 Button {
                     logForRetrospective = log
                 } label: {
