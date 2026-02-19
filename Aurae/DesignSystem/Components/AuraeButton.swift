@@ -37,6 +37,14 @@ struct AuraeButton: View {
     var isDisabled: Bool = false
     let action: () -> Void
 
+    init(_ title: String, style: AuraeButtonStyle = .primary, isLoading: Bool = false, isDisabled: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.style = style
+        self.isLoading = isLoading
+        self.isDisabled = isDisabled
+        self.action = action
+    }
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isPressed = false
 
