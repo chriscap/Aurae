@@ -2,18 +2,20 @@
 //  HomeView.swift
 //  Aurae
 //
-//  The main screen. Owns the @Query result (latest logs, descending) and passes
-//  derived data to HomeViewModel for logic. The split keeps SwiftData's property
-//  wrapper in a View (the only place @Query is valid) while keeping all mutable
-//  state and business logic in the testable view model.
+//  The primary screen. Owns the @Query result and passes derived state to
+//  HomeViewModel for business logic.
 //
-//  Layout (top to bottom):
-//    1. Greeting + date strip
-//    2. Recent activity pill
-//    3. Active-headache banner (conditional)
-//    4. Severity selector
-//    5. Log Headache CTA button (hero)
-//    6. Confirmation overlay (full-screen, auto-dismissing)
+//  State machine (driven by hasActiveHeadache):
+//
+//  No active headache:
+//    header → activity pill → severity selector → "Log Headache" button
+//
+//  Active headache exists:
+//    header → activity pill → active-headache banner (with resolve button)
+//             → "Mark as Resolved" primary button
+//             (severity selector hidden — a new log cannot be started yet)
+//
+//  The full-screen confirmation overlay renders above both states.
 //
 
 import SwiftUI
@@ -22,13 +24,13 @@ import SwiftData
 struct HomeView: View {
 
     // -------------------------------------------------------------------------
-    // MARK: SwiftData + environment
+    // MARK: Environment + data
     // -------------------------------------------------------------------------
 
     @Environment(\.modelContext) private var modelContext
 
-    /// All logs sorted newest-first. HomeView passes this to the view model
-    /// whenever it changes so recency text and active-log state stay current.
+    /// All logs newest-first. Passed to the view model whenever SwiftData
+    /// delivers an updated result so recency text stays current.
     @Query(sort: \HeadacheLog.onsetTime, order: .reverse)
     private var logs: [HeadacheLog]
 
@@ -44,11 +46,8 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Base background
-            Color.auraeBackground
-                .ignoresSafeArea()
+            Color.auraeBackground.ignoresSafeArea()
 
-            // Scrollable content
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     headerSection
@@ -62,25 +61,28 @@ struct HomeView: View {
                             .padding(.top, Layout.sectionSpacing)
                     }
 
-                    severitySection
-                        .padding(.top, Layout.sectionSpacing)
+                    // Severity selector only shown when no headache is active.
+                    // When a headache is ongoing the user resolves it — they
+                    // cannot start a new log until the active one is closed.
+                    if !viewModel.hasActiveHeadache {
+                        severitySection
+                            .padding(.top, Layout.sectionSpacing)
+                    }
 
-                    logButton
+                    primaryActionButton
                         .padding(.top, Layout.itemSpacing)
 
-                    // Error message — only shown on rare insert failures.
                     if let error = viewModel.loggingError {
                         errorBanner(message: error)
                             .padding(.top, Layout.itemSpacing)
                     }
 
-                    // Bottom breathing room above tab bar.
                     Spacer(minLength: Layout.sectionSpacing * 2)
                 }
                 .padding(.horizontal, Layout.screenPadding)
             }
 
-            // Full-screen confirmation overlay — rendered above everything.
+            // Full-screen confirmation overlay — above all content.
             if let log = viewModel.confirmedLog {
                 LogConfirmationView(log: log) {
                     viewModel.clearConfirmation()
@@ -89,13 +91,13 @@ struct HomeView: View {
                 .zIndex(10)
             }
         }
-        // Sync the view model's recency text whenever SwiftData delivers new results.
-        .onChange(of: logs) { _, newLogs in
-            viewModel.updateRecentActivity(from: newLogs)
+        .onChange(of: logs) { _, updated in
+            viewModel.updateRecentActivity(from: updated)
         }
         .onAppear {
             viewModel.updateRecentActivity(from: logs)
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.hasActiveHeadache)
     }
 
     // -------------------------------------------------------------------------
@@ -139,32 +141,36 @@ struct HomeView: View {
     }
 
     private func activeHeadacheBanner(log: HeadacheLog) -> some View {
-        HStack(spacing: 12) {
-            // Pulsing dot
-            Circle()
-                .fill(Color.severityAccent(for: log.severity))
-                .frame(width: 10, height: 10)
+        VStack(alignment: .leading, spacing: Layout.itemSpacing) {
+            HStack(spacing: 12) {
+                // Severity indicator dot
+                Circle()
+                    .fill(Color.severityAccent(for: log.severity))
+                    .frame(width: 10, height: 10)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Headache in progress")
-                    .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Headache in progress")
+                        .font(.auraeLabel)
+                        .foregroundStyle(Color.auraeNavy)
 
-                Text("Started \(log.onsetTime.formatted(date: .omitted, time: .shortened))")
+                    Text("Started \(log.onsetTime.formatted(date: .omitted, time: .shortened))")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                }
+
+                Spacer()
+
+                Text(log.severityLevel.label)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.severityAccent(for: log.severity))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.severitySurface(for: log.severity))
+                    .clipShape(Capsule())
             }
 
-            Spacer()
-
-            // Severity chip
-            Text(log.severityLevel.label)
-                .font(.auraeCaption)
-                .foregroundStyle(Color.severityAccent(for: log.severity))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.severitySurface(for: log.severity))
-                .clipShape(Capsule())
+            // Duration — computed from onset to now, updated via id on the view.
+            durationLine(for: log)
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeLavender)
@@ -177,8 +183,24 @@ struct HomeView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
-            "Headache in progress. \(log.severityLevel.label) severity. Started at \(log.onsetTime.formatted(date: .omitted, time: .shortened))."
+            "Headache in progress. \(log.severityLevel.label) severity. Started \(log.onsetTime.formatted(date: .omitted, time: .shortened))."
         )
+    }
+
+    private func durationLine(for log: HeadacheLog) -> some View {
+        let elapsed = Date.now.timeIntervalSince(log.onsetTime)
+        let minutes = Int(elapsed / 60)
+        let durationText: String = {
+            if minutes < 60 { return "\(minutes)m so far" }
+            let h = minutes / 60
+            let m = minutes % 60
+            return m == 0 ? "\(h)h so far" : "\(h)h \(m)m so far"
+        }()
+
+        return Text(durationText)
+            .font(.auraeCaption)
+            .foregroundStyle(Color.auraeMidGray)
+            .accessibilityHidden(true)
     }
 
     // -------------------------------------------------------------------------
@@ -196,15 +218,29 @@ struct HomeView: View {
     }
 
     // -------------------------------------------------------------------------
-    // MARK: Log button
+    // MARK: Primary action button
     // -------------------------------------------------------------------------
 
-    private var logButton: some View {
-        AuraeButton(
-            "Log Headache",
-            isLoading: viewModel.isLogging
-        ) {
-            viewModel.logHeadache(context: modelContext)
+    /// Switches between "Log Headache" and "Mark as Resolved" depending on
+    /// whether a headache is currently active. The view model guards against
+    /// incorrect calls, but the button label reinforces the current state.
+    private var primaryActionButton: some View {
+        Group {
+            if viewModel.hasActiveHeadache, let active = activeLog {
+                AuraeButton(
+                    "Mark as Resolved",
+                    style: .secondary
+                ) {
+                    viewModel.resolveHeadache(active, context: modelContext)
+                }
+            } else {
+                AuraeButton(
+                    "Log Headache",
+                    isLoading: viewModel.isLogging
+                ) {
+                    viewModel.logHeadache(context: modelContext)
+                }
+            }
         }
     }
 
@@ -216,66 +252,61 @@ struct HomeView: View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 14))
-                .foregroundStyle(Color(hex: "B06020"))
+                .foregroundStyle(Color.severityAccent(for: 4))
 
             Text(message)
                 .font(.auraeCaption)
-                .foregroundStyle(Color(hex: "B06020"))
+                .foregroundStyle(Color.severityAccent(for: 4))
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "FEF8F0"))
+        .background(Color.severitySurface(for: 4))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
     }
 }
 
-// MARK: - Preview
+// MARK: - Previews
 
-#Preview("HomeView") {
+#Preview("No logs — empty state") {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: HeadacheLog.self, WeatherSnapshot.self,
             HealthSnapshot.self, RetrospectiveEntry.self,
         configurations: config
     )
+    return HomeView()
+        .modelContainer(container)
+}
 
-    // Seed a resolved log 2 days ago.
+#Preview("Resolved log 2 days ago") {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: HeadacheLog.self, WeatherSnapshot.self,
+            HealthSnapshot.self, RetrospectiveEntry.self,
+        configurations: config
+    )
     let past = HeadacheLog(
         onsetTime: Date.now.addingTimeInterval(-86400 * 2),
         severity: 3
     )
     past.resolve(at: Date.now.addingTimeInterval(-86400 * 2 + 7200))
     container.mainContext.insert(past)
-
     return HomeView()
         .modelContainer(container)
 }
 
-#Preview("HomeView — active headache") {
+#Preview("Active headache — resolve state") {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: HeadacheLog.self, WeatherSnapshot.self,
             HealthSnapshot.self, RetrospectiveEntry.self,
         configurations: config
     )
-
     let active = HeadacheLog(
         onsetTime: Date.now.addingTimeInterval(-3600),
         severity: 4
     )
     container.mainContext.insert(active)
-
-    return HomeView()
-        .modelContainer(container)
-}
-
-#Preview("HomeView — empty state") {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(
-        for: HeadacheLog.self, WeatherSnapshot.self,
-            HealthSnapshot.self, RetrospectiveEntry.self,
-        configurations: config
-    )
     return HomeView()
         .modelContainer(container)
 }

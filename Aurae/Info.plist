@@ -2,12 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Custom fonts -->
 	<key>UIAppFonts</key>
 	<array>
 		<string>Fraunces_72pt-Regular.ttf</string>
-		<string> Fraunces_72pt-Bold.ttf</string>
-		<string> PlusJakartaSans-Regular.ttf</string>
-		<string>  PlusJakartaSans-SemiBold.ttf</string>
+		<string>Fraunces_72pt-Bold.ttf</string>
+		<string>PlusJakartaSans-Regular.ttf</string>
+		<string>PlusJakartaSans-SemiBold.ttf</string>
 	</array>
+
+	<!-- HealthKit — required even when only reading; both keys must be present -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>Aurae reads heart rate, HRV, blood oxygen, steps, and sleep data from Apple Health to automatically enrich your headache logs. This helps surface patterns between your health and your headaches. All data stays on your device.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Aurae does not write to Apple Health. This key is required by the App Store for apps with the HealthKit entitlement.</string>
+
+	<!-- Location — when-in-use only, used exclusively for weather lookup -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Aurae uses your location at the moment you log a headache to fetch local weather conditions — temperature, pressure, and air quality. Your location is never stored, shared, or used for any other purpose.</string>
 </dict>
 </plist>
