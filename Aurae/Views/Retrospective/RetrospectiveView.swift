@@ -284,7 +284,7 @@ struct RetroSectionContainer<Content: View>: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .background(Color.white.opacity(0.65))
+        .background(Color(.systemBackground).opacity(0.9))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
@@ -350,7 +350,7 @@ struct RetroChipSection: View {
             ChipGrid(items: items, selected: $selected)
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }
@@ -491,7 +491,7 @@ struct RetroStarRating: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
@@ -528,7 +528,7 @@ struct RetroStepper: View {
                 .labelsHidden()
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
@@ -563,7 +563,7 @@ struct RetroStepperDouble: View {
                 .labelsHidden()
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
@@ -583,7 +583,7 @@ struct RetroTextField: View {
             .foregroundStyle(Color.auraeNavy)
             .tint(Color.auraeTeal)
             .padding(Layout.cardPadding)
-            .background(Color.white.opacity(0.6))
+            .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }
@@ -603,7 +603,7 @@ struct RetroToggleRow: View {
         }
         .tint(Color.auraeTeal)
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }

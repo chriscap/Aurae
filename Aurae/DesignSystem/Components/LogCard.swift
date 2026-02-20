@@ -105,7 +105,7 @@ struct LogCard: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color.auraeBackground)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),

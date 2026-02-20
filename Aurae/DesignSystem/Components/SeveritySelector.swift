@@ -112,6 +112,16 @@ private struct SeverityPill: View {
                 .background(pillBackground)
                 .clipShape(RoundedRectangle(cornerRadius: Layout.severityPillRadius, style: .continuous))
                 .overlay(pillBorder)
+                // Lift the selected pill with a subtle shadow so it reads as
+                // the active state without relying on colour contrast alone.
+                .shadow(
+                    color: isSelected
+                        ? Color.severityAccent(for: level.rawValue).opacity(0.25)
+                        : .clear,
+                    radius: 4,
+                    x: 0,
+                    y: 2
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(level.accessibilityLabel)

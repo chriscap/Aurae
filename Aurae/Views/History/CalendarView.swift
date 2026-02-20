@@ -283,13 +283,25 @@ struct DayDetailSheet: View {
         return date.formatted(date: .long, time: .omitted)
     }
 
+    // Subtitle beneath the large title gives the log count at a glance (REC-18).
+    private var countSubtitle: String {
+        logs.count == 1 ? "1 headache" : "\(logs.count) headaches"
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.auraeBackground.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: Layout.itemSpacing) {
+                    VStack(alignment: .leading, spacing: Layout.itemSpacing) {
+                        // Count subtitle rendered below the large navigation title.
+                        Text(countSubtitle)
+                            .font(.auraeCaption)
+                            .foregroundStyle(Color.auraeMidGray)
+                            .padding(.horizontal, Layout.screenPadding)
+                            .padding(.top, 4)
+
                         ForEach(logs) { log in
                             NavigationLink(destination: LogDetailView(log: log)) {
                                 LogCard(viewModel: cardViewModel(log))
@@ -302,8 +314,10 @@ struct DayDetailSheet: View {
                     .padding(.top, Layout.itemSpacing)
                 }
             }
+            // Use .large so the date title reads at full scale in the sheet,
+            // consistent with other NavigationStack screens. (REC-18)
             .navigationTitle(dateTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }

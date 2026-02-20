@@ -105,7 +105,7 @@ struct LifestyleSection: View {
             .foregroundStyle(Color.auraeMidGray)
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -156,7 +156,7 @@ struct LifestyleSection: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 

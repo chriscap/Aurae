@@ -69,8 +69,11 @@ struct HomeView: View {
                             .padding(.top, Layout.sectionSpacing)
                     }
 
+                    // Larger gap above the primary action button so it reads
+                    // as a distinct action zone, not a continuation of the
+                    // severity selector above it. (REC-01)
                     primaryActionButton
-                        .padding(.top, Layout.itemSpacing)
+                        .padding(.top, Layout.sectionSpacing)
 
                     if let error = viewModel.loggingError {
                         errorBanner(message: error)
@@ -110,8 +113,11 @@ struct HomeView: View {
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)
 
+            // Fraunces 18pt with a .title3 Dynamic Type anchor so the date
+            // heading scales properly without competing with H2 section titles
+            // elsewhere on the screen. (REC-02)
             Text(viewModel.formattedDate)
-                .font(.auraeH2)
+                .font(.fraunces(18, weight: .regular, relativeTo: .title3))
                 .foregroundStyle(Color.auraeNavy)
         }
         .accessibilityElement(children: .combine)
@@ -169,8 +175,11 @@ struct HomeView: View {
                     .clipShape(Capsule())
             }
 
-            // Duration — computed from onset to now, updated via id on the view.
-            durationLine(for: log)
+            // Duration — updated every 60 seconds via TimelineView so the
+            // elapsed time stays accurate without a manual timer. (REC-03)
+            TimelineView(.periodic(from: .now, by: 60)) { _ in
+                durationLine(for: log)
+            }
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeLavender)
@@ -248,19 +257,22 @@ struct HomeView: View {
     // MARK: Error banner
     // -------------------------------------------------------------------------
 
+    // Error banner uses neutral tones (auraeMidGray / auraeLavender) so it
+    // does not alarm the user unnecessarily — the message text is sufficient.
+    // Severity-coloured banners are reserved for severity indicators. (REC-04)
     private func errorBanner(message: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 14))
-                .foregroundStyle(Color.severityAccent(for: 4))
+                .foregroundStyle(Color.auraeMidGray)
 
             Text(message)
                 .font(.auraeCaption)
-                .foregroundStyle(Color.severityAccent(for: 4))
+                .foregroundStyle(Color.auraeMidGray)
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.severitySurface(for: 4))
+        .background(Color.auraeLavender)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
     }
 }

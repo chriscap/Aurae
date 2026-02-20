@@ -192,12 +192,12 @@ private struct HowItWorksPage: View {
         ),
         (
             "waveform.path.ecg",
-            Color(hex: "5B6EB5"),
+            Color.auraeIndigo,
             "Health data from Apple Watch and iPhone, captured at onset."
         ),
         (
             "cloud.sun.fill",
-            Color(hex: "B06020"),
+            Color.auraeAmber,
             "Local weather conditions recorded the moment you log."
         )
     ]
@@ -226,17 +226,17 @@ private struct RetrospectivePage: View {
     private let features: [(icon: String, color: Color, text: String)] = [
         (
             "fork.knife",
-            Color(hex: "3A7D5A"),
+            Color.auraeDarkSage,
             "What you ate and drank."
         ),
         (
             "moon.stars.fill",
-            Color(hex: "5B6EB5"),
+            Color.auraeIndigo,
             "Sleep and stress levels."
         ),
         (
             "pill.fill",
-            Color(hex: "B03A2E"),
+            Color(hex: "B03A2E"),   // muted red — no token yet, matches severityAccent(for: 5)
             "Medication and effectiveness."
         )
     ]
@@ -314,9 +314,9 @@ private struct MockInsightsCard: View {
                 .frame(height: 180)
                 .overlay(mockChartLines)
                 .overlay(
-                    // Frosted glass effect — semi-opaque white layer
+                    // Frosted glass effect — adaptive overlay adapts to Dark Mode.
                     RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                        .fill(Color.white.opacity(0.55))
+                        .fill(Color(.systemBackground).opacity(0.55))
                 )
 
             // Lock badge
@@ -373,7 +373,7 @@ private struct PermissionsPage: View {
     private let permissions: [PermissionItem] = [
         PermissionItem(
             icon:       "heart.fill",
-            iconColor:  Color(hex: "B03A2E"),
+            iconColor:  Color(hex: "B03A2E"),   // matches severityAccent(for: 5)
             title:      "Apple Health",
             detail:     "Read sleep, heart rate, and activity at headache onset. Never written to."
         ),
@@ -385,7 +385,7 @@ private struct PermissionsPage: View {
         ),
         PermissionItem(
             icon:       "bell.fill",
-            iconColor:  Color(hex: "B06020"),
+            iconColor:  Color.auraeAmber,
             title:      "Notifications",
             detail:     "Optional follow-up reminder to complete your log."
         )
@@ -506,15 +506,17 @@ private struct FeatureRow: View {
                     .foregroundStyle(iconColor)
             }
 
+            // Use the semantic .auraeBody token so the font scales with
+            // Dynamic Type and matches the rest of the app. (REC-28)
             Text(description)
-                .font(.jakarta(15))
+                .font(.auraeBody)
                 .foregroundStyle(Color.auraeNavy)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer(minLength: 0)
         }
         .padding(Layout.cardPadding)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
@@ -559,7 +561,7 @@ private struct PermissionRow: View {
             Spacer(minLength: 0)
         }
         .padding(Layout.cardPadding)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),

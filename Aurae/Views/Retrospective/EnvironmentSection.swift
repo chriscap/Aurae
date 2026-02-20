@@ -77,7 +77,7 @@ struct EnvironmentSection: View {
             )
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -100,7 +100,7 @@ struct EnvironmentSection: View {
             )
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -123,7 +123,7 @@ struct EnvironmentSection: View {
             )
         }
         .padding(Layout.cardPadding)
-        .background(Color.white.opacity(0.6))
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -153,7 +153,7 @@ struct EnvironmentSection: View {
                     .scrollContentBackground(.hidden)
             }
             .padding(Layout.cardPadding)
-            .background(Color.white.opacity(0.6))
+            .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         }
     }

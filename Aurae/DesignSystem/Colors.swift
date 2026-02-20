@@ -71,6 +71,20 @@ extension Color {
 
     /// Sage Green — severity low; calm, positive state surface.
     static let auraeSage = Color(hex: "D1EAD4")
+
+    // -------------------------------------------------------------------------
+    // Categorical accent colours — used in Insights charts and onboarding icons.
+    // These are design-system tokens; never use the raw hex values elsewhere.
+    // -------------------------------------------------------------------------
+
+    /// Aurae Indigo — health/HRV data, chart accent for calm/neutral metrics.
+    static let auraeIndigo = Color(hex: "5B6EB5")
+
+    /// Aurae Amber — weather/environmental data, warm-risk chart accent.
+    static let auraeAmber = Color(hex: "B06020")
+
+    /// Aurae Dark Sage — food/positive lifestyle data, green chart accent.
+    static let auraeDarkSage = Color(hex: "3A7D5A")
 }
 
 // MARK: - Severity colour mapping

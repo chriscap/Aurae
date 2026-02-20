@@ -86,7 +86,7 @@ struct ExportView: View {
                     in: viewModel.dateRangeStart...
                 )
             }
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
             .shadow(
                 color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),

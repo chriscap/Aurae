@@ -130,11 +130,27 @@ struct LogConfirmationView: View {
             )
     }
 
+    // Severity-aware contextual hint so the message feels relevant to the
+    // user's current experience rather than a generic placeholder. (REC-05)
     private var hintText: some View {
-        Text("Stay hydrated.")
+        Text(hintCopy)
             .font(.auraeCaption)
             .foregroundStyle(Color.auraeMidGray.opacity(0.7))
+            .multilineTextAlignment(.center)
             .padding(.top, Layout.itemSpacing)
+    }
+
+    private var hintCopy: String {
+        switch log.severity {
+        case 1, 2:
+            return "Rest in a calm, quiet space if you can."
+        case 3:
+            return "Stay hydrated and reduce screen brightness."
+        case 4:
+            return "Consider taking any prescribed medication now."
+        default:   // 5
+            return "Find a dark, quiet room and rest. You've got this."
+        }
     }
 
     // -------------------------------------------------------------------------

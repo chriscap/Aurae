@@ -101,7 +101,12 @@ struct AuraeButton: View {
                         .tint(labelColor)
                 } else {
                     Text(title)
-                        .font(.fraunces(18, weight: .bold, relativeTo: .body))
+                        // Primary CTAs use Fraunces for brand weight.
+                        // Secondary/destructive use Jakarta so they read
+                        // as supporting actions, not competing headlines.
+                        .font(style == .primary
+                              ? .fraunces(18, weight: .bold, relativeTo: .body)
+                              : .jakarta(16, weight: .semibold, relativeTo: .body))
                         .foregroundStyle(labelColor)
                         .lineLimit(1)
                 }

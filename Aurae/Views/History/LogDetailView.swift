@@ -267,7 +267,9 @@ struct LogDetailView: View {
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)
 
-            AuraeButton("Add details") {
+            // Secondary style so this CTA doesn't compete with the
+            // primary "Mark as Resolved" action above. (REC-17)
+            AuraeButton("Add details", style: .secondary) {
                 showRetrospective = true
             }
         }
@@ -291,6 +293,9 @@ struct DetailSectionHeader: View {
         Text(title)
             .font(.auraeLabel)
             .foregroundStyle(Color.auraeMidGray)
+            // Slightly expanded tracking makes all-caps section labels more
+            // readable without relying on point-size increases. (REC-15)
+            .tracking(1.0)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -302,6 +307,31 @@ struct DetailSectionHeader: View {
 struct WeatherCard: View {
 
     let snapshot: WeatherSnapshot
+
+    /// Locale-aware temperature formatter. Uses the system locale so US users
+    /// see °F automatically; all other locales see °C. (REC-16)
+    private static let tempFormatter: MeasurementFormatter = {
+        let f = MeasurementFormatter()
+        f.unitOptions = .temperatureWithoutUnit
+        f.numberFormatter.maximumFractionDigits = 0
+        f.unitStyle = .short
+        return f
+    }()
+
+    private var formattedTemperature: String {
+        let celsius = Measurement(value: snapshot.temperature, unit: UnitTemperature.celsius)
+        // Convert to the user's preferred temperature unit automatically.
+        let locale = Locale.current
+        let usesMetric = locale.measurementSystem != .us
+        let display = usesMetric
+            ? celsius
+            : celsius.converted(to: .fahrenheit)
+        let unit = usesMetric ? "°C" : "°F"
+        let formatted = Self.tempFormatter.string(from: display)
+        // MeasurementFormatter with .temperatureWithoutUnit omits the symbol;
+        // we append the correct unit label manually.
+        return formatted + unit
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -321,7 +351,7 @@ struct WeatherCard: View {
 
                 Spacer()
 
-                Text(String(format: "%.0f°C", snapshot.temperature))
+                Text(formattedTemperature)
                     .font(.auraeH2)
                     .foregroundStyle(Color.auraeNavy)
             }
@@ -740,7 +770,7 @@ struct RetrospectiveReadView: View {
         case "sound_sensitivity": return "Sound sensitivity"
         case "aura":              return "Visual aura"
         case "neck_pain":         return "Neck stiffness"
-        case "visual_disturbance":return "Fatigue"
+        case "visual_disturbance":return "Visual disturbance"
         case "vomiting":          return "Vomiting"
         case "dizziness":         return "Dizziness"
         default:                  return key.replacingOccurrences(of: "_", with: " ").capitalized
@@ -754,9 +784,9 @@ struct RetrospectiveReadView: View {
         case "strong_smell":   return "Strong smell"
         case "screen_glare":   return "Screen glare"
         case "weather_change": return "Weather change"
-        case "altitude":       return "Poor ventilation"
-        case "heat":           return "Smoke"
-        case "cold":           return "Other"
+        case "altitude":       return "High altitude"
+        case "heat":           return "Heat"
+        case "cold":           return "Cold"
         default:               return key.replacingOccurrences(of: "_", with: " ").capitalized
         }
     }

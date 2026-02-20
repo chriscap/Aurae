@@ -194,20 +194,29 @@ struct HistoryView: View {
 
     // MARK: Month section header
 
+    // Month header uses Fraunces 17 Bold so it sits clearly above the log
+    // cards without being as heavy as a full H1. The trailing Divider provides
+    // a visual break between months without extra spacing. (REC-12)
     private func monthSectionHeader(for group: [HeadacheLog]) -> some View {
-        HStack {
-            Text(viewModel.monthHeader(for: group))
-                .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(viewModel.monthHeader(for: group))
+                    .font(.fraunces(17, weight: .bold, relativeTo: .headline))
+                    .foregroundStyle(Color.auraeNavy)
 
-            Spacer()
+                Spacer()
 
-            Text("\(group.count) log\(group.count == 1 ? "" : "s")")
-                .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                Text("\(group.count) log\(group.count == 1 ? "" : "s")")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+            }
+            .padding(.horizontal, Layout.screenPadding)
+            .padding(.vertical, 10)
+
+            Divider()
+                .overlay(Color.auraeLavender)
+                .padding(.horizontal, Layout.screenPadding)
         }
-        .padding(.horizontal, Layout.screenPadding)
-        .padding(.vertical, 10)
         .background(Color.auraeBackground)
     }
 
@@ -226,8 +235,22 @@ struct HistoryView: View {
     // MARK: Empty state
     // -------------------------------------------------------------------------
 
+    // Empty state copy differentiates between three contexts:
+    // 1. No logs at all and no search query — first-time user
+    // 2. Search returned nothing — help them course-correct
+    // 3. Calendar mode with no logs for this month — guide to list view (REC-13, REC-19)
     private var emptyState: some View {
-        VStack(spacing: Layout.itemSpacing) {
+        let isCalendar = viewModel.displayMode == .calendar
+        let headline   = viewModel.searchText.isEmpty
+            ? (isCalendar ? "No headaches this month" : "No headaches logged yet")
+            : "No results"
+        let body: String = {
+            if !viewModel.searchText.isEmpty { return "Try a different search term." }
+            if isCalendar { return "Switch to the list view to see all logs, or navigate to another month." }
+            return "Your history will appear here after your first log."
+        }()
+
+        return VStack(spacing: Layout.itemSpacing) {
             Spacer()
 
             ZStack {
@@ -235,24 +258,20 @@ struct HistoryView: View {
                     .fill(Color.auraeLavender)
                     .frame(width: 80, height: 80)
 
-                Image(systemName: "calendar.badge.clock")
+                Image(systemName: isCalendar ? "calendar" : "calendar.badge.clock")
                     .font(.system(size: 32, weight: .light))
                     .foregroundStyle(Color.auraeTeal)
             }
 
-            Text(viewModel.searchText.isEmpty ? "No headaches logged yet" : "No results")
+            Text(headline)
                 .font(.auraeH2)
                 .foregroundStyle(Color.auraeNavy)
 
-            Text(
-                viewModel.searchText.isEmpty
-                    ? "Your history will appear here after your first log."
-                    : "Try a different search term."
-            )
-            .font(.auraeBody)
-            .foregroundStyle(Color.auraeMidGray)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, Layout.screenPadding * 2)
+            Text(body)
+                .font(.auraeBody)
+                .foregroundStyle(Color.auraeMidGray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Layout.screenPadding * 2)
 
             Spacer()
         }

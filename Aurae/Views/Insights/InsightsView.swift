@@ -57,8 +57,15 @@ struct InsightsView: View {
         if !entitlementService.isPro {
             lockedView
         } else if viewModel.isLoading {
-            ProgressView()
-                .tint(Color.auraeTeal)
+            // Contextual loading state — tells the user what is happening
+            // rather than showing a bare spinner. (REC-21)
+            VStack(spacing: Layout.itemSpacing) {
+                ProgressView()
+                    .tint(Color.auraeTeal)
+                Text("Analysing your patterns…")
+                    .font(.auraeBody)
+                    .foregroundStyle(Color.auraeMidGray)
+            }
         } else if !viewModel.minimumLogsMet {
             keepLoggingView
         } else if let report = viewModel.report {
@@ -103,19 +110,124 @@ struct InsightsView: View {
         }
     }
 
-    // Decorative mock cards shown behind the lock overlay
+    // Decorative mock cards shown behind the lock overlay.
+    // Each card mimics the visual structure of a real Insights card so the
+    // blurred preview gives users a genuine sense of the premium content. (REC-24)
     private var mockInsightCards: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: Layout.itemSpacing) {
-                ForEach(0..<4, id: \.self) { i in
-                    RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                        .fill(i % 2 == 0 ? Color.auraeLavender : Color.auraeSoftTeal)
-                        .frame(height: [100, 160, 120, 140][i])
-                        .padding(.horizontal, Layout.screenPadding)
+                // Card 1: mock trigger bar chart
+                mockCard(height: 130) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        mockLabelRow(width: 90)
+                        ForEach([0.75, 0.5, 0.35, 0.2] as [CGFloat], id: \.self) { fraction in
+                            mockBar(fraction: fraction)
+                        }
+                    }
+                }
+
+                // Card 2: mock weekday heatmap + time-of-day rows
+                mockCard(height: 170) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        mockLabelRow(width: 80)
+                        HStack(spacing: 6) {
+                            ForEach(0..<7, id: \.self) { i in
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.auraeLavender)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 36)
+                            }
+                        }
+                        mockLabelRow(width: 60)
+                        ForEach(0..<3, id: \.self) { _ in
+                            Capsule()
+                                .fill(Color.auraeLavender)
+                                .frame(height: 12)
+                        }
+                    }
+                }
+
+                // Card 3: mock stat cards in a horizontal strip
+                mockCard(height: 110) {
+                    HStack(spacing: Layout.itemSpacing) {
+                        ForEach(0..<3, id: \.self) { _ in
+                            VStack(alignment: .leading, spacing: 6) {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.auraeLavender)
+                                    .frame(width: 36, height: 36)
+                                Capsule()
+                                    .fill(Color.auraeLavender)
+                                    .frame(width: 40, height: 10)
+                                Capsule()
+                                    .fill(Color.auraeLavender.opacity(0.6))
+                                    .frame(width: 60, height: 8)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+
+                // Card 4: mock sleep stat tiles
+                mockCard(height: 100) {
+                    HStack(spacing: Layout.itemSpacing) {
+                        ForEach(0..<2, id: \.self) { _ in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Capsule()
+                                    .fill(Color.auraeLavender)
+                                    .frame(width: 44, height: 14)
+                                Capsule()
+                                    .fill(Color.auraeLavender.opacity(0.6))
+                                    .frame(height: 8)
+                            }
+                            .padding(Layout.cardPadding)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.auraeLavender.opacity(0.4))
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
+                    }
                 }
             }
+            .padding(.horizontal, Layout.screenPadding)
             .padding(.top, Layout.screenPadding)
         }
+    }
+
+    // MARK: Mock card helpers
+
+    private func mockCard<Content: View>(height: CGFloat, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            mockLabelRow(width: 110)
+            content()
+        }
+        .padding(Layout.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: height)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .shadow(
+            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            radius: Layout.cardShadowRadius, x: 0, y: Layout.cardShadowY
+        )
+    }
+
+    private func mockLabelRow(width: CGFloat) -> some View {
+        Capsule()
+            .fill(Color.auraeLavender)
+            .frame(width: width, height: 10)
+    }
+
+    private func mockBar(fraction: CGFloat) -> some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.auraeLavender)
+                    .frame(height: 10)
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.auraeTeal.opacity(0.35))
+                    .frame(width: geo.size.width * fraction, height: 10)
+            }
+        }
+        .frame(height: 10)
     }
 
     // MARK: - Keep logging empty state
@@ -141,22 +253,35 @@ struct InsightsView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Layout.screenPadding * 2)
 
-            // Mini progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.auraeLavender)
-                        .frame(height: 8)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.auraeTeal)
-                        .frame(
-                            width: geo.size.width * min(Double(viewModel.totalLogs) / Double(InsightsService.minimumLogs), 1.0),
-                            height: 8
-                        )
-                        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.totalLogs)
+            // Mini progress bar with axis labels (REC-22)
+            VStack(alignment: .leading, spacing: 6) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.auraeLavender)
+                            .frame(height: 8)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.auraeTeal)
+                            .frame(
+                                width: geo.size.width * min(Double(viewModel.totalLogs) / Double(InsightsService.minimumLogs), 1.0),
+                                height: 8
+                            )
+                            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.totalLogs)
+                    }
+                }
+                .frame(height: 8)
+
+                // Axis labels: current count on the left, target on the right
+                HStack {
+                    Text("\(viewModel.totalLogs) logged")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeTeal)
+                    Spacer()
+                    Text("Goal: \(InsightsService.minimumLogs)")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
                 }
             }
-            .frame(height: 8)
             .padding(.horizontal, Layout.screenPadding * 2)
         }
     }
@@ -208,14 +333,14 @@ extension InsightsView {
                         value: formattedDuration(dur),
                         label: "Avg duration",
                         icon: "clock",
-                        iconColor: Color(hex: "5B6EB5")
+                        iconColor: Color.auraeIndigo
                     )
                 }
                 StatCard(
                     value: "\(report.streakDays)d",
                     label: "Headache-free streak",
                     icon: "flame.fill",
-                    iconColor: Color(hex: "B06020")
+                    iconColor: Color.auraeAmber
                 )
             }
             .padding(.vertical, 4)
@@ -384,7 +509,7 @@ private struct InsightCard<Content: View>: View {
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
@@ -425,7 +550,7 @@ private struct StatCard: View {
         }
         .padding(Layout.cardPadding)
         .frame(width: 120, alignment: .leading)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
             color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
@@ -647,7 +772,7 @@ private struct MedicationRow: View {
                 ForEach(1...5, id: \.self) { i in
                     Image(systemName: i <= starCount ? "star.fill" : "star")
                         .font(.system(size: 11))
-                        .foregroundStyle(i <= starCount ? Color(hex: "B06020") : Color.auraeLavender)
+                        .foregroundStyle(i <= starCount ? Color.auraeAmber : Color.auraeLavender)
                 }
             }
 
