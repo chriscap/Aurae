@@ -50,7 +50,7 @@ struct LogDetailView: View {
 
     var body: some View {
         ZStack {
-            Color.auraeBackground.ignoresSafeArea()
+            Color.auraeAdaptiveBackground.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
@@ -69,7 +69,7 @@ struct LogDetailView: View {
             RetrospectiveView(log: log, context: modelContext)
         }
         .alert("Mark as resolved?", isPresented: $showResolveAlert) {
-            Button("Resolve", role: .destructive) {
+            Button("Resolve") {
                 log.resolve(at: .now)
                 try? modelContext.save()
             }
@@ -92,7 +92,7 @@ struct LogDetailView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(formattedOnsetDate)
                         .font(.auraeH2)
-                        .foregroundStyle(Color.auraeNavy)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                     HStack(spacing: 8) {
                         // Duration / ongoing badge
@@ -133,9 +133,12 @@ struct LogDetailView: View {
                 .strokeBorder(Color.severityAccent(for: log.severity), lineWidth: 2)
                 .frame(width: 60, height: 60)
 
-            Text("\(log.severity)")
-                .font(.fraunces(26, weight: .bold))
+            Text(log.severityLevel.label)
+                .font(.jakarta(11, weight: .semibold))
                 .foregroundStyle(Color.severityAccent(for: log.severity))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
         }
     }
 
@@ -155,7 +158,7 @@ struct LogDetailView: View {
         let color: Color
         if log.isActive {
             text  = "Ongoing"
-            color = Color.auraeTeal
+            color = Color.auraeTealAccessible
         } else if let d = log.formattedDuration {
             text  = d
             color = Color.auraeMidGray
@@ -168,7 +171,7 @@ struct LogDetailView: View {
             .foregroundStyle(color)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(log.isActive ? Color.auraeSoftTeal : Color.auraeLavender)
+            .background(log.isActive ? Color.auraeAdaptiveSoftTeal : Color.auraeAdaptiveSecondary)
             .clipShape(Capsule())
     }
 
@@ -211,17 +214,19 @@ struct LogDetailView: View {
 
     private var noDataPlaceholder: some View {
         HStack(spacing: 10) {
+            // Decorative icon — the text below conveys the full meaning.
             Image(systemName: "cloud.slash")
                 .font(.system(size: 18, weight: .light))
                 .foregroundStyle(Color.auraeMidGray)
+                .accessibilityHidden(true)
 
-            Text("No data was captured at onset.")
+            Text("Weather and health data wasn't available when this headache was logged.")
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.auraeLavender.opacity(0.5))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
     }
 
@@ -240,7 +245,7 @@ struct LogDetailView: View {
                 } label: {
                     Text(log.retrospective?.hasAnyData == true ? "Edit" : "Add details")
                         .font(.auraeLabel)
-                        .foregroundStyle(Color.auraeTeal)
+                        .foregroundStyle(Color.auraeTealAccessible)
                 }
                 .accessibilityLabel(
                     log.retrospective?.hasAnyData == true
@@ -259,9 +264,11 @@ struct LogDetailView: View {
 
     private var emptyRetrospective: some View {
         VStack(spacing: Layout.itemSpacing) {
+            // Decorative illustration — empty state meaning conveyed by text below.
             Image(systemName: "note.text.badge.plus")
                 .font(.system(size: 28, weight: .light))
                 .foregroundStyle(Color.auraeMidGray)
+                .accessibilityHidden(true)
 
             Text("No details added yet")
                 .font(.auraeBody)
@@ -272,10 +279,11 @@ struct LogDetailView: View {
             AuraeButton("Add details", style: .secondary) {
                 showRetrospective = true
             }
+            .accessibilityHint("Opens the retrospective form to add notes about this headache")
         }
         .frame(maxWidth: .infinity)
         .padding(Layout.cardPadding)
-        .background(Color.auraeLavender.opacity(0.5))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
     }
 }
@@ -335,28 +343,30 @@ struct WeatherCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header row: condition icon + condition label
+            // Header row: condition icon + condition label.
+            // Icon is decorative — WeatherCard combines all children. (A18-05)
             HStack(spacing: 10) {
                 Image(systemName: conditionIcon(snapshot.condition))
                     .font(.system(size: 22, weight: .light))
                     .foregroundStyle(Color.auraeTeal)
                     .frame(width: 28)
+                    .accessibilityHidden(true)
 
                 Text(snapshot.condition
                     .replacingOccurrences(of: "_", with: " ")
                     .capitalized
                 )
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                 Spacer()
 
                 Text(formattedTemperature)
                     .font(.auraeH2)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
 
-            Divider().overlay(Color.auraeLavender)
+            Divider().overlay(Color.auraeAdaptiveSecondary)
 
             // Metrics grid
             LazyVGrid(
@@ -389,10 +399,10 @@ struct WeatherCard: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
@@ -458,6 +468,7 @@ private struct WeatherMetricCell: View {
                 .font(.system(size: 13))
                 .foregroundStyle(Color.auraeMidGray)
                 .frame(width: 18)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
@@ -465,7 +476,7 @@ private struct WeatherMetricCell: View {
                     .foregroundStyle(Color.auraeMidGray)
                 Text(value)
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
         }
         .accessibilityElement(children: .combine)
@@ -484,16 +495,18 @@ struct HealthCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
+                // Decorative icon — card combines all children into one element.
                 Image(systemName: "heart.fill")
                     .font(.system(size: 18, weight: .light))
                     .foregroundStyle(Color.severityAccent(for: 4))
+                    .accessibilityHidden(true)
 
                 Text("Apple Health")
                     .font(.auraeH2)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
 
-            Divider().overlay(Color.auraeLavender)
+            Divider().overlay(Color.auraeAdaptiveSecondary)
 
             LazyVGrid(
                 columns: [GridItem(.flexible()), GridItem(.flexible())],
@@ -533,10 +546,10 @@ struct HealthCard: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
@@ -564,6 +577,7 @@ private struct HealthMetricCell: View {
                 .font(.system(size: 13))
                 .foregroundStyle(Color.auraeMidGray)
                 .frame(width: 18)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
@@ -571,7 +585,7 @@ private struct HealthMetricCell: View {
                     .foregroundStyle(Color.auraeMidGray)
                 Text(value ?? "—")
                     .font(.auraeLabel)
-                    .foregroundStyle(value != nil ? Color.auraeNavy : Color.auraeMidGray)
+                    .foregroundStyle(value != nil ? Color.auraeAdaptivePrimaryText : Color.auraeMidGray)
             }
         }
         .accessibilityElement(children: .combine)
@@ -742,7 +756,7 @@ struct RetrospectiveReadView: View {
             RetroReadCard(title: "NOTES") {
                 Text(notes)
                     .font(.auraeBody)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -826,10 +840,10 @@ private struct RetroReadCard<Content: View>: View {
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
@@ -852,7 +866,7 @@ private struct RetroReadRow: View {
 
             Text(value)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityElement(children: .combine)
@@ -876,12 +890,18 @@ private struct RetroReadStars: View {
 
             HStack(spacing: 3) {
                 ForEach(1...5, id: \.self) { star in
+                    // Decorative read-only star — parent combine carries the label. (A18-05)
                     Image(systemName: star <= rating ? "star.fill" : "star")
                         .font(.system(size: 13))
                         .foregroundStyle(
                             star <= rating ? Color.auraeTeal : Color.auraeMidGray.opacity(0.35)
                         )
+                        .accessibilityHidden(true)
                 }
+                Text("\(rating)/5")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+                    .padding(.leading, 4)
             }
             Spacer()
         }
@@ -901,10 +921,10 @@ private struct RetroReadTagRow: View {
             ForEach(tags, id: \.self) { tag in
                 Text(tag)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(Color.auraeLavender)
+                    .background(Color.auraeAdaptiveSecondary)
                     .clipShape(Capsule())
             }
         }

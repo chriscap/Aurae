@@ -5,13 +5,17 @@
 //  Drives ExportView. Responsibilities:
 //    - Holds the user-selected date range
 //    - Filters the full log list passed in from @Query in the view
-//    - Triggers PDF generation via PDFExportService
-//    - Produces a temp-file URL for SwiftUI ShareLink
+//    - Triggers PDF generation via PDFExportService (summary and full)
+//    - Produces temp-file URLs for SwiftUI ShareLink
 //
 //  Architecture note: @Query lives in ExportView (never in a ViewModel).
 //  ExportView passes the current query result to updateLogs(_:) on appear
 //  and onChange. This keeps the VM a plain @Observable class with no
 //  SwiftData coupling.
+//
+//  The summary export (isGenerating / shareURL) and the full export
+//  (isGeneratingFull / shareURLFull) use independent state so both buttons
+//  can be active simultaneously without one overwriting the other's result.
 //
 
 import Foundation
@@ -34,11 +38,17 @@ final class ExportViewModel {
     var dateRangeEnd: Date = Calendar.current.startOfDay(for: .now)
         .addingTimeInterval(86399)   // 23:59:59
 
-    // MARK: - State
+    // MARK: - Summary export state
 
     var isGenerating: Bool = false
     var generatedPDFData: Data? = nil
     var errorMessage: String? = nil
+
+    // MARK: - Full export state (independent — does not affect summary state)
+
+    var isGeneratingFull: Bool = false
+    var generatedFullPDFData: Data? = nil
+    var errorMessageFull: String? = nil
 
     // MARK: - Private log store
 
@@ -72,7 +82,7 @@ final class ExportViewModel {
         allLogs = logs
     }
 
-    // MARK: - PDF generation
+    // MARK: - Summary PDF generation
 
     /// Generates the free-tier summary PDF and stores the result in
     /// `generatedPDFData`. Safe to call from a SwiftUI button action.
@@ -91,10 +101,33 @@ final class ExportViewModel {
         }
     }
 
-    // MARK: - Share URL
+    // MARK: - Full PDF generation (premium)
 
-    /// Writes the generated PDF to a deterministic temp-directory location
-    /// and returns the URL for use with SwiftUI's ShareLink.
+    /// Generates the full premium PDF and stores the result in
+    /// `generatedFullPDFData`. Uses independent state so the two
+    /// export buttons do not interfere with each other.
+    func generateFull() {
+        guard !isGeneratingFull else { return }
+        generatedFullPDFData = nil
+        errorMessageFull     = nil
+        isGeneratingFull     = true
+
+        // Capture the logs on @MainActor before the async boundary.
+        let logsToExport = selectedLogs
+
+        Task {
+            let data = await PDFExportService.shared.generateFullPDF(
+                logs: logsToExport
+            )
+            isGeneratingFull     = false
+            generatedFullPDFData = data
+        }
+    }
+
+    // MARK: - Share URLs
+
+    /// Writes the generated summary PDF to a deterministic temp-directory
+    /// location and returns the URL for use with SwiftUI's ShareLink.
     /// Returns nil if no PDF has been generated yet.
     var shareURL: URL? {
         guard let data = generatedPDFData else { return nil }
@@ -108,11 +141,32 @@ final class ExportViewModel {
         }
     }
 
+    /// Writes the generated full PDF to a deterministic temp-directory
+    /// location and returns the URL for use with SwiftUI's ShareLink.
+    /// Returns nil if no full PDF has been generated yet.
+    var shareURLFull: URL? {
+        guard let data = generatedFullPDFData else { return nil }
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Aurae_Full_Report.pdf")
+        do {
+            try data.write(to: url, options: .atomic)
+            return url
+        } catch {
+            return nil
+        }
+    }
+
     // MARK: - Reset
 
-    /// Clears the last generated PDF so the button becomes active again.
+    /// Clears the last generated summary PDF so the button becomes active again.
     func resetExport() {
         generatedPDFData = nil
         errorMessage     = nil
+    }
+
+    /// Clears the last generated full PDF so the button becomes active again.
+    func resetFullExport() {
+        generatedFullPDFData = nil
+        errorMessageFull     = nil
     }
 }

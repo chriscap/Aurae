@@ -93,5 +93,5 @@ struct FoodDrinkSection: View {
         )
         .padding(Layout.screenPadding)
     }
-    .background(Color.auraeBackground)
+    .background(Color.auraeAdaptiveBackground)
 }

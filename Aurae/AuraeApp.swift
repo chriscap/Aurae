@@ -129,6 +129,8 @@ private struct RootView: View {
 
     var body: some View {
         ContentView()
+            // Adaptive color scheme — respects the user's system setting.
+            // The app is designed for both light and dark mode.
             .fullScreenCover(isPresented: showOnboarding) {
                 OnboardingView {
                     hasCompletedOnboarding = true

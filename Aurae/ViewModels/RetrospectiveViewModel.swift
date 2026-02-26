@@ -91,6 +91,9 @@ final class RetrospectiveViewModel {
     /// Effectiveness rating (1–5 stars).
     var medicationEffectiveness: Int = 0
 
+    /// D-32: Acute vs preventive classification. nil = not yet classified.
+    var medicationIsAcute: Bool? = nil
+
     // =========================================================================
     // MARK: - Environment / Symptoms state
     // =========================================================================
@@ -130,6 +133,11 @@ final class RetrospectiveViewModel {
     /// Snapshot of all fields taken at init — used by hasUnsavedChanges.
     private let initialSnapshot: FormSnapshot
 
+    /// True when the log already had a RetrospectiveEntry when this view model
+    /// was created. Used by RetrospectiveView to suppress the "No changes to
+    /// save yet." hint on first open of a brand-new retrospective.
+    let hadExistingRetrospectiveOnEntry: Bool
+
     // =========================================================================
     // MARK: - Init
     // =========================================================================
@@ -155,6 +163,7 @@ final class RetrospectiveViewModel {
         var _medicationName:           String       = ""
         var _medicationDose:           String       = ""
         var _medicationEffectiveness:  Int          = 0
+        var _medicationIsAcute:        Bool?        = nil
         var _selectedTriggers:         Set<String>  = []
         var _selectedSymptoms:         Set<String>  = []
         var _headacheLocation:         String       = ""
@@ -174,6 +183,7 @@ final class RetrospectiveViewModel {
             _medicationName          = retro.medicationName ?? ""
             _medicationDose          = retro.medicationDose ?? ""
             _medicationEffectiveness = retro.medicationEffectiveness ?? 0
+            _medicationIsAcute       = retro.medicationIsAcute
             _selectedTriggers        = Set(retro.environmentalTriggers)
             _selectedSymptoms        = Set(retro.symptoms)
             _headacheLocation        = retro.headacheLocation ?? ""
@@ -197,6 +207,7 @@ final class RetrospectiveViewModel {
         // ── Step 2: assign all stored properties ──────────────────────────────
         self.log     = log
         self.context = context
+        self.hadExistingRetrospectiveOnEntry = log.retrospective != nil
 
         self.selectedMeals            = _selectedMeals
         self.alcoholDetail            = _alcoholDetail
@@ -212,6 +223,7 @@ final class RetrospectiveViewModel {
         self.medicationName           = _medicationName
         self.medicationDose           = _medicationDose
         self.medicationEffectiveness  = _medicationEffectiveness
+        self.medicationIsAcute        = _medicationIsAcute
         self.selectedTriggers         = _selectedTriggers
         self.selectedSymptoms         = _selectedSymptoms
         self.headacheLocation         = _headacheLocation
@@ -235,6 +247,7 @@ final class RetrospectiveViewModel {
             medicationName:           _medicationName,
             medicationDose:           _medicationDose,
             medicationEffectiveness:  _medicationEffectiveness,
+            medicationIsAcute:        _medicationIsAcute,
             selectedTriggers:         _selectedTriggers,
             selectedSymptoms:         _selectedSymptoms,
             headacheLocation:         _headacheLocation,
@@ -326,6 +339,8 @@ final class RetrospectiveViewModel {
         retro.medicationDose          = medicationDose.isEmpty ? nil : medicationDose
         retro.medicationEffectiveness = medicationEffectiveness > 0
                                             ? medicationEffectiveness : nil
+        // D-32: Only persist classification when a medication name is present.
+        retro.medicationIsAcute       = medicationName.isEmpty ? nil : medicationIsAcute
         retro.environmentalTriggers   = Array(selectedTriggers)
         retro.symptoms                = Array(selectedSymptoms)
         retro.headacheLocation        = headacheLocation.isEmpty ? nil : headacheLocation
@@ -364,6 +379,7 @@ final class RetrospectiveViewModel {
             medicationName:          medicationName,
             medicationDose:          medicationDose,
             medicationEffectiveness: medicationEffectiveness,
+            medicationIsAcute:       medicationIsAcute,
             selectedTriggers:        selectedTriggers,
             selectedSymptoms:        selectedSymptoms,
             headacheLocation:        headacheLocation,
@@ -392,6 +408,7 @@ private struct FormSnapshot: Equatable {
     let medicationName: String
     let medicationDose: String
     let medicationEffectiveness: Int
+    let medicationIsAcute: Bool?
     let selectedTriggers: Set<String>
     let selectedSymptoms: Set<String>
     let headacheLocation: String
@@ -446,8 +463,11 @@ extension RetrospectiveViewModel {
 }
 
 /// Headache location options (stored as-is in headacheLocation).
+/// Must match LogHeadacheModal.locationOptions so pre-population from log time works.
 extension RetrospectiveViewModel {
-    static let locationOptions: [String] = ["Front", "Sides", "Back", "Top", "Whole head"]
+    static let locationOptions: [String] = [
+        "Forehead", "Temples", "Back of head", "One side", "Entire head"
+    ]
 }
 
 /// Headache type options mapping to canonical model keys.

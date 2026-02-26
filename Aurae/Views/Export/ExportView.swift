@@ -2,12 +2,12 @@
 //  ExportView.swift
 //  Aurae
 //
-//  The Export tab (Step 12). Lets the user choose a date range, see how many
-//  headache logs fall in that range, and export a PDF summary.
+//  The Export tab (Step 12 + Step 16). Lets the user choose a date range,
+//  see how many headache logs fall in that range, and export a PDF.
 //
-//  Free tier — summary table PDF (Date, Time, Severity, Duration,
-//              Weather, Medication, Notes truncated to 40 chars)
-//  Premium   — full contextual PDF (locked card, upgrade CTA)
+//  Free tier  — summary table PDF (Date, Time, Severity, Duration,
+//               Weather, Medication, Notes truncated to 40 chars)
+//  Premium    — full contextual PDF with detail cards and trigger intelligence
 //
 //  The @Query lives here, not in ExportViewModel. Results are piped to the VM
 //  via .onAppear and .onChange, following the same pattern used in HistoryView.
@@ -31,16 +31,16 @@ struct ExportView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.auraeBackground.ignoresSafeArea()
+                Color.auraeAdaptiveBackground.ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
                         dateRangeSection
                         logCountBadge
                         freeExportSection
-                        // Hide the locked card entirely once the user is Pro.
-                        // The full export button (Step 16) will appear in its place.
-                        if !entitlementService.isPro {
+                        if entitlementService.isPro {
+                            premiumProSection
+                        } else {
                             premiumLockedSection
                         }
                     }
@@ -68,7 +68,17 @@ struct ExportView: View {
         VStack(alignment: .leading, spacing: Layout.itemSpacing) {
             Text("Date Range")
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+
+            // Quick-select preset chips
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    datePresetChip("Last 7 days", days: 7)
+                    datePresetChip("Last 30 days", days: 30)
+                    datePresetChip("Last 3 months", days: 90)
+                    datePresetChip("All time", days: nil)
+                }
+            }
 
             VStack(spacing: 0) {
                 DatePickerRow(
@@ -86,23 +96,57 @@ struct ExportView: View {
                     in: viewModel.dateRangeStart...
                 )
             }
-            .background(Color(.systemBackground))
+            .background(Color.auraeAdaptiveCard)
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
             .shadow(
-                color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+                color: Color.black.opacity(Layout.cardShadowOpacity),
                 radius: Layout.cardShadowRadius,
                 x: 0, y: Layout.cardShadowY
             )
         }
     }
 
+    private func datePresetChip(_ label: String, days: Int?) -> some View {
+        let isActive: Bool = {
+            if let days {
+                let target = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+                return Calendar.current.isDate(viewModel.dateRangeStart, inSameDayAs: target)
+                    && Calendar.current.isDateInToday(viewModel.dateRangeEnd)
+            } else {
+                // "All time" — check if start is very old (more than 5 years back)
+                return viewModel.dateRangeStart < Calendar.current.date(byAdding: .year, value: -5, to: Date()) ?? Date()
+            }
+        }()
+
+        return Button {
+            if let days {
+                viewModel.dateRangeStart = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+            } else {
+                viewModel.dateRangeStart = Calendar.current.date(byAdding: .year, value: -10, to: Date()) ?? Date()
+            }
+            viewModel.dateRangeEnd = Date()
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            Text(label)
+                .font(.auraeLabel)
+                .foregroundStyle(isActive ? Color.auraeTealAccessible : Color.auraeAdaptivePrimaryText)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(isActive ? Color.auraeAdaptiveSoftTeal : Color.auraeAdaptiveSecondary)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Log count badge
 
     private var logCountBadge: some View {
         HStack(spacing: 8) {
+            // Decorative icon — the text label carries the log count. (A18-08)
             Image(systemName: "doc.text")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color.auraeTeal)
+                .accessibilityHidden(true)
 
             Text(viewModel.logCountDescription)
                 .font(.auraeBody)
@@ -116,13 +160,13 @@ struct ExportView: View {
         VStack(alignment: .leading, spacing: Layout.itemSpacing) {
             Text("Summary Export")
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             // What's included card
             VStack(alignment: .leading, spacing: 10) {
                 Text("What's included")
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                 ForEach(includedColumns, id: \.self) { column in
                     IncludedRow(label: column)
@@ -130,7 +174,7 @@ struct ExportView: View {
             }
             .padding(Layout.cardPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.auraeLavender)
+            .background(Color.auraeAdaptiveSecondary)
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
 
             // Export button
@@ -142,6 +186,14 @@ struct ExportView: View {
                 viewModel.generate()
             }
 
+            if viewModel.selectedLogs.isEmpty && !viewModel.isGenerating {
+                Text("No headache logs in the selected date range.")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+            }
+
             // Share link — appears once data is ready
             if let url = viewModel.shareURL {
                 ShareLink(item: url, subject: Text("Aurae Headache Report")) {
@@ -149,18 +201,21 @@ struct ExportView: View {
                         Spacer()
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 16, weight: .medium))
+                            .accessibilityHidden(true)
                         Text("Share PDF")
                             .font(.auraeLabel)
                         Spacer()
                     }
                     .frame(height: Layout.buttonHeight)
-                    .foregroundStyle(Color.auraeTeal)
+                    .foregroundStyle(Color.auraeTealAccessible)
                     .overlay(
                         RoundedRectangle(cornerRadius: Layout.buttonRadius, style: .continuous)
-                            .strokeBorder(Color.auraeTeal, lineWidth: 1.5)
+                            .strokeBorder(Color.auraeTealAccessible, lineWidth: 1.5)
                     )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Share PDF report")
+                .accessibilityHint("Opens the system share sheet for the generated summary PDF")
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
 
@@ -168,7 +223,7 @@ struct ExportView: View {
             if let error = viewModel.errorMessage {
                 Text(error)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color(hex: "B03A2E"))
+                    .foregroundStyle(Color.auraeDestructive)
                     .padding(.top, 4)
             }
 
@@ -186,10 +241,11 @@ struct ExportView: View {
         VStack(alignment: .leading, spacing: Layout.itemSpacing) {
             Text("Full Contextual Export")
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             VStack(spacing: 16) {
                 HStack(spacing: 12) {
+                    // Decorative lock badge — heading "Aurae Pro" below conveys gate. (A18-08)
                     ZStack {
                         Circle()
                             .fill(Color.auraeTeal.opacity(0.15))
@@ -198,11 +254,12 @@ struct ExportView: View {
                             .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(Color.auraeTeal)
                     }
+                    .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Aurae Pro")
                             .font(.auraeLabel)
-                            .foregroundStyle(Color.auraeNavy)
+                            .foregroundStyle(Color.auraeAdaptivePrimaryText)
                         Text("Unlock a detailed clinical-style PDF with full trigger context, symptom history, and trend analysis.")
                             .font(.auraeCaption)
                             .foregroundStyle(Color.auraeMidGray)
@@ -213,12 +270,14 @@ struct ExportView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(premiumFeatures, id: \.self) { feature in
                         HStack(spacing: 8) {
+                            // Decorative bullet checkmark — absorbed by row combine. (A18-08)
                             Image(systemName: "checkmark")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(Color.auraeTeal)
+                                .accessibilityHidden(true)
                             Text(feature)
                                 .font(.auraeCaption)
-                                .foregroundStyle(Color.auraeNavy)
+                                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                         }
                     }
                 }
@@ -227,9 +286,97 @@ struct ExportView: View {
                 AuraeButton("Upgrade to Aurae Pro", style: .secondary) {
                     showPaywall = true
                 }
+                .accessibilityHint("Opens the upgrade screen for Aurae Pro")
             }
             .padding(Layout.cardPadding)
-            .background(Color.auraeSoftTeal)
+            .background(Color.auraeAdaptiveSoftTeal)
+            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        }
+    }
+
+    // MARK: - Premium Pro section (shown when user is Pro)
+
+    private var premiumProSection: some View {
+        VStack(alignment: .leading, spacing: Layout.itemSpacing) {
+            Text("Full Contextual Export")
+                .font(.auraeH2)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+
+            VStack(alignment: .leading, spacing: Layout.itemSpacing) {
+
+                // What's included card
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("What's included")
+                        .font(.auraeLabel)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
+
+                    ForEach(fullExportFeatures, id: \.self) { feature in
+                        IncludedRow(label: feature)
+                    }
+                }
+                .padding(Layout.cardPadding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.auraeAdaptiveSecondary)
+                .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+
+                // Export CTA — loading hint provided by AuraeButton itself.
+                AuraeButton(
+                    "Export Full PDF",
+                    isLoading: viewModel.isGeneratingFull,
+                    isDisabled: viewModel.selectedLogs.isEmpty
+                ) {
+                    viewModel.generateFull()
+                }
+
+                if viewModel.selectedLogs.isEmpty && !viewModel.isGeneratingFull {
+                    Text("No headache logs in the selected date range.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 4)
+                }
+
+                // Share link — appears once full PDF is ready
+                if let url = viewModel.shareURLFull {
+                    ShareLink(item: url, subject: Text("Aurae Full Headache Report")) {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16, weight: .medium))
+                                .accessibilityHidden(true)
+                            Text("Share Full PDF")
+                                .font(.auraeLabel)
+                            Spacer()
+                        }
+                        .frame(height: Layout.buttonHeight)
+                        .foregroundStyle(Color.auraeTealAccessible)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Layout.buttonRadius, style: .continuous)
+                                .strokeBorder(Color.auraeTealAccessible, lineWidth: 1.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Share full PDF report")
+                    .accessibilityHint("Opens the system share sheet for the generated full contextual PDF")
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
+                // Error message
+                if let error = viewModel.errorMessageFull {
+                    Text(error)
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeDestructive)
+                        .padding(.top, 4)
+                }
+
+                // Medical disclaimer
+                Text("This report is for informational purposes only and is not medical advice.")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(Layout.cardPadding)
+            .background(Color.auraeAdaptiveSoftTeal)
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         }
     }
@@ -251,6 +398,15 @@ struct ExportView: View {
         "HealthKit metrics at time of onset",
         "Trend charts embedded in the document",
         "CSV and JSON data export"
+    ]
+
+    private let fullExportFeatures: [String] = [
+        "All summary data (date, time, severity, duration, weather, medication)",
+        "Full retrospective: food, lifestyle, symptoms, environment",
+        "Complete notes (no character limit)",
+        "Trigger intelligence summary with top patterns",
+        "Day-of-week and time-of-day distribution charts",
+        "Severity distribution and medication effectiveness"
     ]
 }
 
@@ -282,7 +438,7 @@ private struct DatePickerRow: View {
         HStack {
             Text(label)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .frame(width: 40, alignment: .leading)
 
             Spacer()
@@ -311,16 +467,19 @@ private struct IncludedRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
+            // Decorative bullet checkmark — row is combined so label text is read. (A18-08)
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 14))
                 .foregroundStyle(Color.auraeTeal)
                 .padding(.top, 1)
+                .accessibilityHidden(true)
 
             Text(label)
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

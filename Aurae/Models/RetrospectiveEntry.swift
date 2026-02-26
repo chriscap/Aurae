@@ -66,6 +66,17 @@ final class RetrospectiveEntry {
     /// How effective the medication was, 1 (no effect) – 5 (complete relief).
     var medicationEffectiveness: Int?
 
+    /// Whether the medication was taken acutely for headache relief (true)
+    /// or taken daily as a prescribed preventive (false).
+    /// Nil if the user did not classify the medication (D-32).
+    ///
+    /// Classification logic for the medication overuse count:
+    ///   true  → counts toward acute total
+    ///   false → excluded from acute total (preventive)
+    ///   nil   → conservatively counted toward acute total unless the name
+    ///           matches a known preventive list (InsightsService.acuteMedicationDaysThisMonth)
+    var medicationIsAcute: Bool? = nil
+
     // MARK: - Symptoms
 
     /// Pipe-delimited list of symptoms experienced during the headache.
@@ -203,9 +214,11 @@ extension RetrospectiveEntry {
     ]
 
     /// Common food trigger shortcuts shown as quick-select chips in the UI.
+    /// D-25 (22 Feb 2026): "gluten" relabeled "Gluten (if sensitive)" to clarify
+    /// this trigger is relevant only to users with celiac disease or confirmed gluten sensitivity.
     static let foodTriggerShortcuts: [String] = [
         "aged cheese", "processed meat", "MSG", "citrus", "chocolate",
-        "red wine", "caffeine", "artificial sweetener", "gluten"
+        "red wine", "caffeine", "artificial sweetener", "Gluten (if sensitive)"
     ]
 }
 

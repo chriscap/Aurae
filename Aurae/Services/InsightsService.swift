@@ -12,8 +12,11 @@
 //  Privacy guarantee: no raw health values leave this function. The report
 //  contains only aggregate statistics (averages, counts, correlations).
 //
-//  Minimum log threshold: 5 logs required. Below this, all correlation
-//  fields default to empty/nil and the view shows a "keep logging" state.
+//  Minimum log thresholds (updated 2026-02-22 per clinical review D-20):
+//    minimumLogs              = 5   — general frequency insights (streak, day-of-week, triggers)
+//    minimumCorrelationLogs   = 10  — weather correlations (require enough data to be defensible)
+//    minimumSleepGroupLogs    = 5   — per-group minimum for sleep correlation (bad-day / good-day)
+//  Below each threshold, the relevant section returns empty/nil.
 //
 
 import Foundation
@@ -57,7 +60,7 @@ enum TimeOfDay: String, CaseIterable, Sendable {
 struct WeatherCorrelation: Identifiable, Sendable {
     let id: UUID
     let factor: String        // e.g. "Pressure drop"
-    let correlation: String   // e.g. "Strong correlation"
+    let correlation: String   // e.g. "Frequently present" (see correlationLabel — D-21)
     let description: String   // Full plain-language insight
     let sfSymbol: String      // Icon name for display
     let strength: Double      // 0–1, drives visual emphasis
@@ -151,7 +154,78 @@ struct InsightsReport: Sendable {
 
 struct InsightsService {
 
+    /// Minimum resolved logs required before general frequency insights are surfaced.
     static let minimumLogs = 5
+
+    /// Minimum resolved logs with weather data required before any weather
+    /// correlation is shown. Raised from 3 → 10 per clinical review (D-20).
+    static let minimumCorrelationLogs = 10
+
+    /// Minimum logs per comparison group (bad-day / good-day) required before
+    /// a sleep correlation is surfaced. Raised from 2 → 5 per clinical review (D-20).
+    static let minimumSleepGroupLogs = 5
+
+    /// Number of distinct calendar days with acute medication in the current month
+    /// required before the medication overuse awareness card is shown (D-32).
+    static let medicationOveruseThreshold = 10
+
+    // MARK: - Medication overuse awareness (D-32)
+
+    /// Returns the number of distinct calendar days in the current month on which
+    /// the user logged an acute medication.
+    ///
+    /// Acute classification rules (D-32):
+    ///   - `medicationIsAcute == true`  → counted
+    ///   - `medicationIsAcute == false` → excluded (preventive, daily as prescribed)
+    ///   - `medicationIsAcute == nil`   → conservatively counted toward the acute
+    ///     total UNLESS the medication name prefix-matches a known preventive list.
+    ///     This avoids false positives for users on common daily preventives while
+    ///     not silently under-counting unclassified acute medications.
+    ///
+    /// Returns 0 if no qualifying logs exist for the current month.
+    static func acuteMedicationDaysThisMonth(from logs: [HeadacheLog]) -> Int {
+        let calendar = Calendar.current
+        let now = Date.now
+        guard let startOfMonth = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: now)
+        ) else { return 0 }
+
+        // Known preventive medication name prefixes (case-insensitive).
+        // D-32: used to exclude unclassified (nil) entries whose name clearly
+        // identifies a preventive. This list is a conservative seed (OQ-03).
+        let knownPreventives: [String] = [
+            "amitriptyline", "nortriptyline", "topiramate", "topamax",
+            "valproate", "valproic", "propranolol", "metoprolol", "atenolol",
+            "candesartan", "lisinopril", "venlafaxine", "duloxetine",
+            "flunarizine", "cinnarizine", "botox", "onabotulinumtoxin"
+        ]
+
+        var acuteDays = Set<DateComponents>()
+
+        for log in logs {
+            guard
+                let retro = log.retrospective,
+                let name = retro.medicationName,
+                !name.isEmpty,
+                log.onsetTime >= startOfMonth
+            else { continue }
+
+            // Explicitly classified as preventive — skip.
+            if retro.medicationIsAcute == false { continue }
+
+            // Unclassified (nil) but name matches a known preventive — skip.
+            if retro.medicationIsAcute == nil {
+                let lower = name.lowercased()
+                if knownPreventives.contains(where: { lower.hasPrefix($0) }) { continue }
+            }
+
+            // Either explicitly acute or conservatively treated as acute.
+            let day = calendar.dateComponents([.year, .month, .day], from: log.onsetTime)
+            acuteDays.insert(day)
+        }
+
+        return acuteDays.count
+    }
 
     // MARK: - Entry point
 
@@ -303,7 +377,9 @@ struct InsightsService {
             guard let w = log.weather else { return nil }
             return (log, w)
         }
-        guard withWeather.count >= 3 else { return [] }
+        // D-20: require at least minimumCorrelationLogs resolved logs with weather data
+        // before surfacing any weather pattern. Three data points is not a defensible basis.
+        guard withWeather.count >= Self.minimumCorrelationLogs else { return [] }
 
         var correlations: [WeatherCorrelation] = []
 
@@ -425,17 +501,27 @@ struct InsightsService {
             .filter { $0.severity <= 2 }
             .compactMap { sleepHours(for: $0) }
 
-        guard badDaysSleep.count >= 2, goodDaysSleep.count >= 2 else { return nil }
+        // D-20: require minimumSleepGroupLogs in each group before surfacing this insight.
+        // Fewer entries per group make the average too sensitive to individual outliers.
+        guard badDaysSleep.count >= Self.minimumSleepGroupLogs,
+              goodDaysSleep.count >= Self.minimumSleepGroupLogs else { return nil }
 
         let avgBad  = badDaysSleep.reduce(0, +)  / Double(badDaysSleep.count)
         let avgGood = goodDaysSleep.reduce(0, +) / Double(goodDaysSleep.count)
+        // diff > 0 means more sleep on good (low-severity) days — the expected pattern.
+        // diff < 0 means more sleep on bad (high-severity) days — often due to resting
+        // during pain, NOT a protective effect of extra sleep.
         let diff = avgGood - avgBad
 
         let insight: String
         if diff > 0.5 {
-            insight = String(format: "You sleep %.1f hour(s) more on headache-free days. Less sleep appears linked to more severe headaches.", diff)
+            // Good days have meaningfully more sleep — less sleep associated with worse headaches.
+            insight = String(format: "You sleep %.1f hour(s) more on headache-free days. Less sleep may be associated with more severe headaches for you.", diff)
         } else if diff < -0.5 {
-            insight = String(format: "Sleep patterns appear similar across headache-free and high-severity days (%.1f h difference).", abs(diff))
+            // D-20 / CHANGE 3: bad days have MORE sleep — previously showed a misleading
+            // "similar patterns" message. This branch now accurately explains the likely
+            // reason: rest during pain, not a beneficial pattern.
+            insight = String(format: "You tend to sleep %.1f hour(s) more during high-severity headache days, which may reflect rest during pain rather than a trigger.", abs(diff))
         } else {
             insight = "Sleep duration shows little variation between headache-free and high-severity days."
         }
@@ -516,12 +602,19 @@ struct InsightsService {
     }
 
     // MARK: - Correlation label
+    //
+    // D-21 (22 Feb 2026): Statistical correlation language is prohibited.
+    // The co-occurrence algorithm does not produce valid correlation coefficients.
+    // Use frequency-based language exclusively:
+    //   "Frequently present"   replaces "Strong correlation"
+    //   "Sometimes present"    replaces "Moderate correlation"
+    //   "Occasionally present" replaces "Weak correlation"
 
     private func correlationLabel(strength: Double) -> String {
         switch strength {
-        case 0.7...:  return "Strong correlation"
-        case 0.4..<0.7: return "Moderate correlation"
-        default:      return "Weak correlation"
+        case 0.7...:     return "Frequently present"
+        case 0.4..<0.7:  return "Sometimes present"
+        default:         return "Occasionally present"
         }
     }
 }

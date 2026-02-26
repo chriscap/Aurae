@@ -60,11 +60,14 @@ struct RetrospectiveView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-                Color.auraeBackground.ignoresSafeArea()
+                Color.auraeAdaptiveBackground.ignoresSafeArea()
 
                 // Scrollable content
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: Layout.itemSpacing) {
+                    VStack(spacing: Layout.sectionSpacing) {
+                        // Progress hint — complements the small CompletionRing in the toolbar
+                        progressHint
+
                         FoodDrinkSection(
                             selectedMeals:    $viewModel.selectedMeals,
                             alcoholDetail:    $viewModel.alcoholDetail,
@@ -88,6 +91,7 @@ struct RetrospectiveView: View {
                             medicationName:          $viewModel.medicationName,
                             medicationDose:          $viewModel.medicationDose,
                             medicationEffectiveness: $viewModel.medicationEffectiveness,
+                            medicationIsAcute:       $viewModel.medicationIsAcute,
                             hasData:                 viewModel.medicationSectionHasData
                         )
 
@@ -154,6 +158,24 @@ struct RetrospectiveView: View {
     }
 
     // -------------------------------------------------------------------------
+    // MARK: Progress hint
+    // -------------------------------------------------------------------------
+
+    private var progressHint: some View {
+        let completedCount = [
+            viewModel.foodSectionHasData,
+            viewModel.lifestyleSectionHasData,
+            viewModel.medicationSectionHasData,
+            viewModel.environmentSectionHasData
+        ].filter { $0 }.count
+
+        return Text("\(completedCount) of 4 sections complete")
+            .font(.auraeCaption)
+            .foregroundStyle(Color.auraeMidGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // -------------------------------------------------------------------------
     // MARK: Save button bar
     // -------------------------------------------------------------------------
 
@@ -161,7 +183,7 @@ struct RetrospectiveView: View {
         VStack(spacing: 0) {
             // Gradient fade so content appears to scroll beneath the button
             LinearGradient(
-                colors: [Color.auraeBackground.opacity(0), Color.auraeBackground],
+                colors: [Color.auraeAdaptiveBackground.opacity(0), Color.auraeAdaptiveBackground],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -177,6 +199,19 @@ struct RetrospectiveView: View {
                         dismiss()
                     }
                 }
+                .accessibilityHint("Saves your retrospective notes for this headache")
+
+                // Only show the "no changes" hint when editing a retrospective
+                // that already existed — on first open the disabled button
+                // state is sufficient feedback without extra copy beneath it.
+                if !viewModel.hasUnsavedChanges && !viewModel.isSaving
+                    && viewModel.hadExistingRetrospectiveOnEntry {
+                    Text("No changes to save yet.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 4)
+                }
 
                 if let error = viewModel.saveError {
                     Text(error)
@@ -187,7 +222,7 @@ struct RetrospectiveView: View {
             }
             .padding(.horizontal, Layout.screenPadding)
             .padding(.bottom, Layout.itemSpacing)
-            .background(Color.auraeBackground)
+            .background(Color.auraeAdaptiveBackground)
         }
     }
 }
@@ -202,20 +237,23 @@ struct CompletionRing: View {
     private let diameter: CGFloat = 28
     private let lineWidth: CGFloat = 3
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.auraeLavender, lineWidth: lineWidth)
+                .stroke(Color.auraeAdaptiveSecondary, lineWidth: lineWidth)
+                .accessibilityHidden(true)
 
             Circle()
                 .trim(from: 0, to: fraction)
-                .stroke(Color.auraeTeal, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .stroke(Color.auraePrimary, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: fraction)
-
-            Text("\(Int(fraction * 100))%")
-                .font(.jakarta(8, weight: .semibold))
-                .foregroundStyle(fraction > 0 ? Color.auraeTeal : Color.auraeMidGray)
+                .animation(
+                    reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8),
+                    value: fraction
+                )
+                .accessibilityHidden(true)
         }
         .frame(width: diameter, height: diameter)
         .accessibilityLabel("Completion: \(Int(fraction * 100)) percent")
@@ -238,11 +276,13 @@ struct RetroSectionContainer<Content: View>: View {
     @Binding var isExpanded: Bool
     @ViewBuilder let content: () -> Content
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Section header — tappable to collapse/expand
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8)) {
                     isExpanded.toggle()
                 }
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -250,22 +290,26 @@ struct RetroSectionContainer<Content: View>: View {
                 HStack(spacing: 8) {
                     Text(title)
                         .font(.auraeH2)
-                        .foregroundStyle(Color.auraeNavy)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
-                    // Completion dot
+                    // Completion dot — decorative; expanded/collapsed state is in
+                    // the button's accessibilityHint below. (A18-06)
                     if hasData {
                         Circle()
-                            .fill(Color.auraeTeal)
+                            .fill(Color.auraePrimary)
                             .frame(width: 7, height: 7)
                             .transition(.scale.combined(with: .opacity))
+                            .accessibilityHidden(true)
                     }
 
                     Spacer()
 
+                    // Decorative chevron — direction is already conveyed by hint.
                     Image(systemName: "chevron.down")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(Color.auraeMidGray)
                         .rotationEffect(.degrees(isExpanded ? 0 : -90))
+                        .accessibilityHidden(true)
                 }
                 .padding(Layout.cardPadding)
                 .contentShape(Rectangle())
@@ -281,18 +325,25 @@ struct RetroSectionContainer<Content: View>: View {
                 }
                 .padding(.horizontal, Layout.cardPadding)
                 .padding(.bottom, Layout.cardPadding)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
             }
         }
-        .background(Color(.systemBackground).opacity(0.9))
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0,
             y: Layout.cardShadowY
         )
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: hasData)
+        .overlay(
+            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
+                .strokeBorder(Color.auraeBorder, lineWidth: 1)
+        )
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8),
+            value: hasData
+        )
     }
 }
 
@@ -319,11 +370,17 @@ struct ChipGrid: View {
                 } label: {
                     Text(item.label)
                         .font(.auraeLabel)
-                        .foregroundStyle(isSelected ? .white : Color.auraeNavy)
+                        .foregroundStyle(isSelected ? Color.auraePrimary : Color.auraeAdaptivePrimaryText)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(isSelected ? Color.auraeTeal : Color.auraeLavender)
+                        .background(isSelected ? Color.auraeAccent : Color.auraeAdaptiveSecondary)
                         .clipShape(Capsule())
+                        .overlay(
+                            Capsule().strokeBorder(
+                                isSelected ? Color.auraeBorder : Color.auraeBorder,
+                                lineWidth: 0.5
+                            )
+                        )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.label)
@@ -345,12 +402,12 @@ struct RetroChipSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             ChipGrid(items: items, selected: $selected)
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }
@@ -379,11 +436,17 @@ struct SingleSelectPillGroup: View {
                 } label: {
                     Text(label)
                         .font(.auraeLabel)
-                        .foregroundStyle(isSelected ? .white : Color.auraeNavy)
+                        .foregroundStyle(isSelected ? Color.auraePrimary : Color.auraeAdaptivePrimaryText)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(isSelected ? Color.auraeTeal : Color.auraeLavender)
+                        .background(isSelected ? Color.auraeAccent : Color.auraeAdaptiveSecondary)
                         .clipShape(Capsule())
+                        .overlay(
+                            Capsule().strokeBorder(
+                                isSelected ? Color.auraeBorder : Color.auraeBorder,
+                                lineWidth: 0.5
+                            )
+                        )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(label)
@@ -470,7 +533,7 @@ struct RetroStarRating: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             HStack(spacing: 6) {
                 ForEach(1...5, id: \.self) { star in
@@ -480,7 +543,7 @@ struct RetroStarRating: View {
                     } label: {
                         Image(systemName: star <= rating ? "star.fill" : "star")
                             .font(.system(size: 26))
-                            .foregroundStyle(star <= rating ? Color.auraeTeal : Color.auraeMidGray.opacity(0.4))
+                            .foregroundStyle(star <= rating ? Color.auraePrimary : Color.auraeAdaptiveSecondary)
                             .frame(minWidth: Layout.minTapTarget, minHeight: Layout.minTapTarget)
                     }
                     .buttonStyle(.plain)
@@ -491,10 +554,11 @@ struct RetroStarRating: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
+        .accessibilityValue(rating == 0 ? "Not set" : "\(rating) out of 5")
     }
 }
 
@@ -514,13 +578,13 @@ struct RetroStepper: View {
         HStack {
             Text(label)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             Spacer()
 
             Text(formatValue(value))
                 .font(.auraeBody)
-                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeNavy)
+                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeAdaptivePrimaryText)
                 .frame(minWidth: 72, alignment: .trailing)
                 .monospacedDigit()
 
@@ -528,7 +592,7 @@ struct RetroStepper: View {
                 .labelsHidden()
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
@@ -549,13 +613,13 @@ struct RetroStepperDouble: View {
         HStack {
             Text(label)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             Spacer()
 
             Text(formatValue(value))
                 .font(.auraeBody)
-                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeNavy)
+                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeAdaptivePrimaryText)
                 .frame(minWidth: 72, alignment: .trailing)
                 .monospacedDigit()
 
@@ -563,7 +627,7 @@ struct RetroStepperDouble: View {
                 .labelsHidden()
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
@@ -580,10 +644,10 @@ struct RetroTextField: View {
     var body: some View {
         TextField(placeholder, text: $text)
             .font(.auraeBody)
-            .foregroundStyle(Color.auraeNavy)
-            .tint(Color.auraeTeal)
+            .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            .tint(Color.auraePrimary)
             .padding(Layout.cardPadding)
-            .background(Color(.secondarySystemBackground))
+            .background(Color.auraeAdaptiveSecondary)
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }
@@ -599,11 +663,11 @@ struct RetroToggleRow: View {
         Toggle(isOn: $isOn) {
             Text(label)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
         }
-        .tint(Color.auraeTeal)
+        .tint(Color.auraePrimary)
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 }

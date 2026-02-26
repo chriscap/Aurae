@@ -74,7 +74,7 @@ struct LogCard: View {
                 HStack {
                     Text(viewModel.severityLevel.label)
                         .font(.auraeH2)
-                        .foregroundStyle(Color.auraeNavy)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                     Spacer()
 
@@ -96,19 +96,31 @@ struct LogCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 11))
-                            .foregroundStyle(Color.auraeTeal)
+                            .foregroundStyle(Color.auraePrimary)
+                            .accessibilityHidden(true)
                         Text("Retrospective complete")
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeTeal)
+                            .foregroundStyle(Color.auraePrimary)
                     }
                 }
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color(.systemBackground))
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        // Severity-tinted surface wash (3 %) — subtle hue shift per level.
+        .overlay(
+            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
+                .fill(Color.severityAccent(for: viewModel.severity).opacity(0.03))
+        )
+        // Severity-tinted hairline border.
+        .overlay(
+            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
+                .strokeBorder(Color.severityAccent(for: viewModel.severity).opacity(0.12), lineWidth: 0.5)
+        )
+        // Unified shadow using shared Layout tokens.
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0,
             y: Layout.cardShadowY
@@ -124,18 +136,19 @@ struct LogCard: View {
             .fill(Color.severityAccent(for: viewModel.severity))
             .frame(width: 5)
             .frame(maxHeight: .infinity)
+            .accessibilityHidden(true)
     }
 
     private var statusBadge: some View {
         Text(viewModel.statusText)
             .font(.auraeCaption)
-            .foregroundStyle(viewModel.isActive ? Color.auraeTeal : Color.auraeMidGray)
+            .foregroundStyle(viewModel.isActive ? Color.auraePrimary : Color.auraeMidGray)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
                 viewModel.isActive
-                    ? Color.auraeSoftTeal
-                    : Color.auraeLavender
+                    ? Color.auraeAccent
+                    : Color.auraeAdaptiveSecondary
             )
             .clipShape(Capsule())
     }
@@ -249,5 +262,5 @@ private struct ContextChip: View {
         }
         .padding(Layout.screenPadding)
     }
-    .background(Color.auraeBackground.ignoresSafeArea())
+    .background(Color.auraeAdaptiveBackground.ignoresSafeArea())
 }

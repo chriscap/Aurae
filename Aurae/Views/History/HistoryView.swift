@@ -49,6 +49,7 @@ struct HistoryView: View {
     // -------------------------------------------------------------------------
 
     @State private var logForRetrospective: HeadacheLog? = nil
+    @State private var showExport: Bool = false
 
     // -------------------------------------------------------------------------
     // MARK: Body
@@ -57,7 +58,7 @@ struct HistoryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.auraeBackground.ignoresSafeArea()
+                Color.auraeAdaptiveBackground.ignoresSafeArea()
 
                 Group {
                     switch viewModel.displayMode {
@@ -73,7 +74,7 @@ struct HistoryView: View {
             .toolbar { toolbarContent }
             .searchable(
                 text: $viewModel.searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
+                placement: .navigationBarDrawer(displayMode: .automatic),
                 prompt: "Search by date or notes"
             )
             .alert("Delete headache log?", isPresented: $showDeleteAlert) {
@@ -89,6 +90,9 @@ struct HistoryView: View {
             }
             .sheet(item: $logForRetrospective) { log in
                 RetrospectiveView(log: log, context: modelContext)
+            }
+            .sheet(isPresented: $showExport) {
+                ExportView()
             }
         }
         .onChange(of: logs) { _, updated in
@@ -147,6 +151,10 @@ struct HistoryView: View {
                     }
                 }
                 .padding(.top, Layout.itemSpacing)
+
+                exportCTAFooter
+                    .padding(.horizontal, Layout.screenPadding)
+                    .padding(.bottom, Layout.sectionSpacing)
             }
         }
     }
@@ -177,32 +185,18 @@ struct HistoryView: View {
                     Label("Delete", systemImage: "trash")
                 }
             }
-            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                // swipeActions only active when inside a List; this is a
-                // ScrollView + LazyVStack, so we rely on contextMenu above.
-                // The button is included here as a fallback for when the
-                // view is embedded inside a List in a future refactor.
-                Button(role: .destructive) {
-                    pendingDeleteIDs = [log.id]
-                    showDeleteAlert  = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-                .tint(Color.severityAccent(for: 5))
-            }
+            // swipeActions removed — they silently fail inside ScrollView +
+            // LazyVStack. Delete is accessible via the contextMenu above.
     }
 
     // MARK: Month section header
 
-    // Month header uses Fraunces 17 Bold so it sits clearly above the log
-    // cards without being as heavy as a full H1. The trailing Divider provides
-    // a visual break between months without extra spacing. (REC-12)
     private func monthSectionHeader(for group: [HeadacheLog]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(viewModel.monthHeader(for: group))
-                    .font(.fraunces(17, weight: .bold, relativeTo: .headline))
-                    .foregroundStyle(Color.auraeNavy)
+                    .font(.auraeSubhead)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                 Spacer()
 
@@ -214,10 +208,10 @@ struct HistoryView: View {
             .padding(.vertical, 10)
 
             Divider()
-                .overlay(Color.auraeLavender)
+                .overlay(Color.auraeAdaptiveSecondary)
                 .padding(.horizontal, Layout.screenPadding)
         }
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveBackground)
     }
 
     // -------------------------------------------------------------------------
@@ -229,6 +223,51 @@ struct HistoryView: View {
             CalendarView(viewModel: viewModel)
                 .padding(.bottom, Layout.sectionSpacing)
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // MARK: Export CTA footer
+    // -------------------------------------------------------------------------
+
+    private var exportCTAFooter: some View {
+        Button { showExport = true } label: {
+            HStack(spacing: AuraeSpacing.md) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                        .fill(Color.auraeAccent)
+                        .frame(width: 36, height: 36)
+                    Image(systemName: "arrow.down.doc")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color.auraePrimary)
+                }
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Export Clinical Report")
+                        .font(.auraeCalloutBold)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
+                    Text("Share a summary with your doctor")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeTextSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.auraeTextSecondary.opacity(0.5))
+            }
+            .padding(Layout.cardPadding)
+            .background(Color.auraeAdaptiveCard)
+            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Export Clinical Report")
+        .accessibilityHint("Opens the data export screen")
     }
 
     // -------------------------------------------------------------------------
@@ -255,17 +294,18 @@ struct HistoryView: View {
 
             ZStack {
                 Circle()
-                    .fill(Color.auraeLavender)
+                    .fill(Color.auraeAdaptiveSecondary)
                     .frame(width: 80, height: 80)
+                    .accessibilityHidden(true)
 
                 Image(systemName: isCalendar ? "calendar" : "calendar.badge.clock")
                     .font(.system(size: 32, weight: .light))
-                    .foregroundStyle(Color.auraeTeal)
+                    .foregroundStyle(Color.auraePrimary)
             }
 
             Text(headline)
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             Text(body)
                 .font(.auraeBody)

@@ -52,7 +52,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.auraeBackground.ignoresSafeArea()
+            Color.auraeAdaptiveBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Skip button row — visible only on screens 2–4
@@ -115,12 +115,16 @@ struct OnboardingView: View {
         HStack(spacing: 8) {
             ForEach(0..<pageCount, id: \.self) { index in
                 Capsule()
-                    .fill(index == currentPage ? Color.auraeTeal : Color.auraeLavender)
+                    .fill(index == currentPage ? Color.auraeTeal : Color.auraeAdaptiveSecondary)
                     .frame(width: index == currentPage ? 20 : 8, height: 8)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: currentPage)
             }
         }
         .padding(.top, 12)
+        // Page dots are decorative position indicators. VoiceOver users navigate
+        // through page content sequentially via swipe; the dots carry no unique
+        // information beyond what is visible on each page. (A18-09)
+        .accessibilityHidden(true)
     }
 
     // MARK: - Helpers
@@ -142,21 +146,23 @@ private struct WelcomePage: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Logo mark
+            // Decorative logo mark — app name "Aurae" in the headline below
+            // conveys identity to VoiceOver users. (A18-09)
             ZStack {
                 Circle()
                     .fill(Color.auraeTeal)
                     .frame(width: 96, height: 96)
                 Text("A")
                     .font(.fraunces(52, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.auraeDeepSlate)
             }
             .padding(.bottom, 36)
+            .accessibilityHidden(true)
 
             // Headline
             Text("Understand your headaches.")
                 .font(.fraunces(34, weight: .bold, relativeTo: .largeTitle))
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Layout.screenPadding)
                 .padding(.bottom, 20)
@@ -173,9 +179,11 @@ private struct WelcomePage: View {
             Spacer()
 
             AuraeButton("Get Started", action: onNext)
+                .accessibilityHint("Continues to the next onboarding step")
                 .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, Layout.screenPadding)
+                .padding(.bottom, Layout.itemSpacing)
         }
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -193,7 +201,7 @@ private struct HowItWorksPage: View {
         (
             "waveform.path.ecg",
             Color.auraeIndigo,
-            "Health data from Apple Watch and iPhone, captured at onset."
+            "Heart rate, sleep, and activity from Apple Health, captured at onset."
         ),
         (
             "cloud.sun.fill",
@@ -236,7 +244,7 @@ private struct RetrospectivePage: View {
         ),
         (
             "pill.fill",
-            Color(hex: "B03A2E"),   // muted red — no token yet, matches severityAccent(for: 5)
+            Color.auraeDestructive,   // muted red — no token yet, matches severityAccent(for: 5)
             "Medication and effectiveness."
         )
     ]
@@ -264,32 +272,33 @@ private struct InsightsPage: View {
     let onNext: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
-                    // Headline
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Discover your triggers.")
-                            .font(.fraunces(30, weight: .bold, relativeTo: .title))
-                            .foregroundStyle(Color.auraeNavy)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                // Headline
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Discover your triggers.")
+                        .font(.fraunces(28, weight: .semibold))
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
-                        Text("Aurae Pro analyses your patterns and surfaces your personal triggers — weather pressure drops, poor sleep, skipped meals, and more.")
-                            .font(.auraeBody)
-                            .foregroundStyle(Color.auraeMidGray)
-                            .lineSpacing(4)
-                    }
-                    .padding(.top, 8)
-
-                    // Mock insights card with lock overlay
-                    MockInsightsCard()
+                    Text("Aurae Pro analyses your patterns and surfaces your personal triggers — weather pressure drops, poor sleep, skipped meals, and more.")
+                        .font(.auraeBody)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .lineSpacing(4)
                 }
-                .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, 16)
-            }
+                .padding(.top, 8)
 
+                // Mock insights card with lock overlay
+                MockInsightsCard()
+            }
+            .padding(.horizontal, Layout.screenPadding)
+            .padding(.bottom, 16)
+        }
+        .safeAreaInset(edge: .bottom) {
             AuraeButton("Next", action: onNext)
+                .accessibilityHint("Continues to the permissions setup step")
                 .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, Layout.screenPadding)
+                .padding(.vertical, Layout.itemSpacing)
+                .background(Color.auraeAdaptiveBackground)
         }
     }
 }
@@ -306,7 +315,7 @@ private struct MockInsightsCard: View {
             RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [Color.auraeSoftTeal, Color.auraeLavender],
+                        colors: [Color.auraeAdaptiveSoftTeal, Color.auraeAdaptiveSecondary],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -316,10 +325,10 @@ private struct MockInsightsCard: View {
                 .overlay(
                     // Frosted glass effect — adaptive overlay adapts to Dark Mode.
                     RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                        .fill(Color(.systemBackground).opacity(0.55))
+                        .fill(Color.auraeAdaptiveCard.opacity(0.55))
                 )
 
-            // Lock badge
+            // Lock badge — decorative; heading "Unlock with Aurae Pro" below carries meaning.
             VStack(spacing: 12) {
                 ZStack {
                     Circle()
@@ -327,19 +336,23 @@ private struct MockInsightsCard: View {
                         .frame(width: 52, height: 52)
                     Image(systemName: "lock.fill")
                         .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.auraeDeepSlate)
                 }
+                .accessibilityHidden(true)
 
                 Text("Unlock with Aurae Pro")
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
         }
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
+        // The entire mock card is a decorative preview illustration.
+        // The surrounding page text explains the premium feature. (A18-09)
+        .accessibilityHidden(true)
     }
 
     // Decorative horizontal bars mimicking a chart inside the blurred card
@@ -373,7 +386,7 @@ private struct PermissionsPage: View {
     private let permissions: [PermissionItem] = [
         PermissionItem(
             icon:       "heart.fill",
-            iconColor:  Color(hex: "B03A2E"),   // matches severityAccent(for: 5)
+            iconColor:  Color.auraeDestructive,   // matches severityAccent(for: 5)
             title:      "Apple Health",
             detail:     "Read sleep, heart rate, and activity at headache onset. Never written to."
         ),
@@ -392,50 +405,53 @@ private struct PermissionsPage: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
-                    // Headline
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("A few quick permissions.")
-                            .font(.fraunces(30, weight: .bold, relativeTo: .title))
-                            .foregroundStyle(Color.auraeNavy)
-                    }
-                    .padding(.top, 8)
-
-                    // Permission items
-                    VStack(spacing: Layout.itemSpacing) {
-                        ForEach(permissions, id: \.title) { item in
-                            PermissionRow(
-                                icon:      item.icon,
-                                iconColor: item.iconColor,
-                                title:     item.title,
-                                detail:    item.detail
-                            )
-                        }
-                    }
-
-                    // Opt-out reassurance
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.auraeTeal)
-                        Text("All permissions are optional. Aurae works without them.")
-                            .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray)
-                    }
-                    .padding(Layout.cardPadding)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.auraeSoftTeal)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                // Headline
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("A few quick permissions.")
+                        .font(.fraunces(28, weight: .semibold))
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 }
-                .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, 16)
-            }
+                .padding(.top, 8)
 
+                // Permission items
+                VStack(spacing: Layout.itemSpacing) {
+                    ForEach(permissions, id: \.title) { item in
+                        PermissionRow(
+                            icon:      item.icon,
+                            iconColor: item.iconColor,
+                            title:     item.title,
+                            detail:    item.detail
+                        )
+                    }
+                }
+
+                // Opt-out reassurance
+                HStack(spacing: 8) {
+                    // Decorative shield — text below conveys the message. (A18-09)
+                    Image(systemName: "checkmark.shield.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.auraeTeal)
+                        .accessibilityHidden(true)
+                    Text("All permissions are optional. Aurae works without them.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                }
+                .padding(Layout.cardPadding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.auraeAdaptiveSoftTeal)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .padding(.horizontal, Layout.screenPadding)
+            .padding(.bottom, 16)
+        }
+        .safeAreaInset(edge: .bottom) {
             AuraeButton("Let's go", action: onComplete)
+                .accessibilityHint("Completes onboarding and opens the app")
                 .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, Layout.screenPadding)
+                .padding(.vertical, Layout.itemSpacing)
+                .background(Color.auraeAdaptiveBackground)
         }
     }
 }
@@ -452,36 +468,37 @@ private struct OnboardingPageShell<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
-                    // Headline + optional subtitle
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(headline)
-                            .font(.fraunces(30, weight: .bold, relativeTo: .title))
-                            .foregroundStyle(Color.auraeNavy)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                // Headline + optional subtitle
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(headline)
+                        .font(.fraunces(28, weight: .semibold))
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
-                        if let sub = subtitle {
-                            Text(sub)
-                                .font(.auraeBody)
-                                .foregroundStyle(Color.auraeMidGray)
-                                .lineSpacing(4)
-                        }
-                    }
-                    .padding(.top, 8)
-
-                    // Feature rows
-                    VStack(spacing: Layout.itemSpacing) {
-                        content()
+                    if let sub = subtitle {
+                        Text(sub)
+                            .font(.auraeBody)
+                            .foregroundStyle(Color.auraeMidGray)
+                            .lineSpacing(4)
                     }
                 }
-                .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, 16)
-            }
+                .padding(.top, 8)
 
+                // Feature rows
+                VStack(spacing: Layout.itemSpacing) {
+                    content()
+                }
+            }
+            .padding(.horizontal, Layout.screenPadding)
+            .padding(.bottom, 16)
+        }
+        .safeAreaInset(edge: .bottom) {
             AuraeButton("Next", action: onNext)
+                .accessibilityHint("Continues to the next onboarding step")
                 .padding(.horizontal, Layout.screenPadding)
-                .padding(.bottom, Layout.screenPadding)
+                .padding(.vertical, Layout.itemSpacing)
+                .background(Color.auraeAdaptiveBackground)
         }
     }
 }
@@ -497,6 +514,7 @@ private struct FeatureRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
+            // Decorative icon badge — description text is the full content. (A18-09)
             ZStack {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(iconColor.opacity(0.12))
@@ -505,21 +523,22 @@ private struct FeatureRow: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(iconColor)
             }
+            .accessibilityHidden(true)
 
             // Use the semantic .auraeBody token so the font scales with
             // Dynamic Type and matches the rest of the app. (REC-28)
             Text(description)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer(minLength: 0)
         }
         .padding(Layout.cardPadding)
-        .background(Color(.systemBackground))
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
@@ -538,6 +557,7 @@ private struct PermissionRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
+            // Decorative icon badge — title and detail carry the full content. (A18-09)
             ZStack {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(iconColor.opacity(0.12))
@@ -546,11 +566,12 @@ private struct PermissionRow: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(iconColor)
             }
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 Text(detail)
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeMidGray)
@@ -561,13 +582,14 @@ private struct PermissionRow: View {
             Spacer(minLength: 0)
         }
         .padding(Layout.cardPadding)
-        .background(Color(.systemBackground))
+        .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         .shadow(
-            color: Color.auraeNavy.opacity(Layout.cardShadowOpacity),
+            color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0, y: Layout.cardShadowY
         )
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -579,10 +601,10 @@ private struct PermissionRow: View {
 
 #Preview("Screen 1 — Welcome") {
     WelcomePage(onNext: {})
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveBackground)
 }
 
 #Preview("Screen 5 — Permissions") {
     PermissionsPage(onComplete: {})
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveBackground)
 }

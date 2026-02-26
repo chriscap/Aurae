@@ -3,7 +3,7 @@
 //  Aurae
 //
 //  Full-screen overlay shown immediately after a headache is logged.
-//  Auto-dismisses after 2 seconds via a fade transition.
+//  Auto-dismisses after 3.5 seconds via a fade transition, or on tap.
 //  Never shown as a modal sheet — it layers over the home screen so the
 //  user can see the app is still alive and ready beneath.
 //
@@ -19,7 +19,8 @@ struct LogConfirmationView: View {
     /// The log that was just created. Used to display the severity and onset time.
     let log: HeadacheLog
 
-    /// Called once the 2-second auto-dismiss timer fires.
+    /// Called once the 3.5-second auto-dismiss timer fires, the user taps
+    /// to dismiss early, or after they acknowledge the red-flag banner.
     let onDismiss: () -> Void
 
     // -------------------------------------------------------------------------
@@ -31,6 +32,13 @@ struct LogConfirmationView: View {
     @State private var ringOpacity: Double = 0.0
     @State private var contentOpacity: Double = 0.0
     @State private var pulseScale: CGFloat = 1.0
+
+    // -------------------------------------------------------------------------
+    // MARK: Safety state (D-28, D-33)
+    // -------------------------------------------------------------------------
+
+    /// Controls the "When to Seek Medical Care" sheet.
+    @State private var showMedicalEscalation = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -46,22 +54,51 @@ struct LogConfirmationView: View {
                 .opacity(0.82)
                 .ignoresSafeArea()
 
-            VStack(spacing: Layout.sectionSpacing) {
-                Spacer()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: Layout.sectionSpacing) {
+                    Spacer(minLength: Layout.sectionSpacing)
 
-                // Animated ring + checkmark
-                ringStack
+                    // Animated ring + checkmark
+                    ringStack
 
-                // Confirmation text
-                confirmationText
+                    // Confirmation text
+                    confirmationText
 
-                // Subtle hint
-                hintText
+                    // Subtle hint
+                    hintText
 
-                Spacer()
-                Spacer()
+                    // D-28, D-33: Red-flag safety banner — primary exposure point.
+                    // Shown immediately when a triggering condition is detected.
+                    // When the banner is visible, the auto-dismiss is suppressed
+                    // until the user acknowledges or dismisses it.
+                    if shouldShowRedFlagBanner(for: log), !log.hasAcknowledgedRedFlag {
+                        RedFlagBannerCard(
+                            urgency: redFlagUrgency(for: log),
+                            onLearnMore: {
+                                showMedicalEscalation = true
+                            },
+                            onDismiss: {
+                                log.hasAcknowledgedRedFlag = true
+                                // Allow a short pause then dismiss the overlay.
+                                Task {
+                                    try? await Task.sleep(for: .milliseconds(400))
+                                    await MainActor.run { onDismiss() }
+                                }
+                            }
+                        )
+                        .padding(.horizontal, Layout.screenPadding)
+                    }
+
+                    Spacer(minLength: Layout.sectionSpacing)
+                }
             }
             .opacity(contentOpacity)
+        }
+        // Tap anywhere to dismiss early — especially helpful when the user
+        // is feeling well and wants to skip the confirmation.
+        .onTapGesture { onDismiss() }
+        .sheet(isPresented: $showMedicalEscalation) {
+            MedicalEscalationView()
         }
         .onAppear { runAppearSequence() }
     }
@@ -101,7 +138,7 @@ struct LogConfirmationView: View {
         VStack(spacing: Layout.itemSpacing) {
             Text("Logged")
                 .font(.auraeH1)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.auraeStarlight)
 
             Text(onsetTimeText)
                 .font(.auraeBody)
@@ -135,7 +172,7 @@ struct LogConfirmationView: View {
     private var hintText: some View {
         Text(hintCopy)
             .font(.auraeCaption)
-            .foregroundStyle(Color.auraeMidGray.opacity(0.7))
+            .foregroundStyle(Color.auraeMidGray)
             .multilineTextAlignment(.center)
             .padding(.top, Layout.itemSpacing)
     }
@@ -200,8 +237,15 @@ struct LogConfirmationView: View {
 
     private func scheduleDismiss() {
         Task {
-            // Hold for 2 seconds total.
-            try? await Task.sleep(for: .seconds(2))
+            // Hold for 3.5 seconds — migraine sufferers need extra time to
+            // read the severity-contextual hint with reduced cognitive bandwidth.
+            try? await Task.sleep(for: .seconds(3.5))
+
+            // D-28, D-33: If a red-flag banner is active and the user has not
+            // yet acknowledged it, suppress the auto-dismiss. The banner's own
+            // onDismiss callback will call onDismiss() when the user acts.
+            let bannerActive = shouldShowRedFlagBanner(for: log) && !log.hasAcknowledgedRedFlag
+            guard !bannerActive else { return }
 
             // Fade out.
             await MainActor.run {
@@ -218,6 +262,24 @@ struct LogConfirmationView: View {
             try? await Task.sleep(for: .milliseconds(310))
             await MainActor.run { onDismiss() }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // MARK: Red-flag helpers (D-28, D-33)
+    // -------------------------------------------------------------------------
+
+    /// Returns true when the log contains a trigger condition requiring the
+    /// safety banner. Mirrors the logic in HomeView.
+    private func shouldShowRedFlagBanner(for log: HeadacheLog) -> Bool {
+        if log.onsetSpeed == .instantaneous { return true }
+        let symptoms = log.retrospective?.symptoms ?? []
+        return symptoms.contains("aura") && symptoms.contains("visual_disturbance")
+    }
+
+    /// Returns the urgency tier for the banner (D-33).
+    private func redFlagUrgency(for log: HeadacheLog) -> RedFlagUrgency {
+        if log.onsetSpeed == .instantaneous && log.severity >= 4 { return .urgent }
+        return .advisory
     }
 }
 
@@ -241,7 +303,7 @@ private struct LogConfirmationPreviewWrapper: View {
         let log = HeadacheLog(onsetTime: .now, severity: 4)
         container.mainContext.insert(log)
         return ZStack {
-            Color.auraeBackground.ignoresSafeArea()
+            Color.auraeAdaptiveBackground.ignoresSafeArea()
             Text("Home screen behind overlay")
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)

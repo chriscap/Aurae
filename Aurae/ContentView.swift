@@ -4,19 +4,16 @@
 //
 //  Root view. Hosts the four-tab navigation shell.
 //
-//  Tab order (matches PRD section 5.1):
-//    0 — Home      — logging CTA (built: Step 3)
-//    1 — History   — log list + calendar (Step 10)
-//    2 — Insights  — premium pattern analysis (Step 15)
-//    3 — Export    — PDF export, data controls (Step 12/17)
+//  Tab order:
+//    0 — Home      — logging CTA + status
+//    1 — History   — log list + calendar + export CTA at bottom
+//    2 — Insights  — pattern analysis (premium)
+//    3 — Profile   — local stats, settings, export data, support
 //
-//  Entitlement gating (Step 14 → 15):
-//  - The Insights tab is always navigable — no tab-level intercept.
-//  - InsightsView owns its own locked-state rendering when !isPro:
-//    a blurred overlay + "Unlock Insights" CTA that presents PaywallView.
-//  - This is cleaner than intercepting tab selection here because it avoids
-//    the one-frame selectedTab snap-back flicker and keeps all Insights-gating
-//    logic colocated in InsightsView.
+//  Navigation change 2026-02-25:
+//  Export tab replaced with Profile. Export Data is now accessible from:
+//    - History tab: "Export Clinical Report" CTA at the bottom of the log list
+//    - Profile tab: DATA section → Export Data row
 //
 
 import SwiftUI
@@ -28,17 +25,25 @@ struct ContentView: View {
 
     @State private var selectedTab: Tab = .home
 
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.shadowColor = UIColor(Color.auraePrimary).withAlphaComponent(0.15)
+        UITabBar.appearance().standardAppearance  = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeView()
                 .tabItem {
-                    Label("Home", systemImage: "house")
+                    Label("Home", systemImage: selectedTab == .home ? "house.fill" : "house")
                 }
                 .tag(Tab.home)
 
             HistoryView()
                 .tabItem {
-                    Label("History", systemImage: "calendar")
+                    Label("History", systemImage: selectedTab == .history ? "clock.fill" : "clock")
                 }
                 .tag(Tab.history)
 
@@ -48,85 +53,298 @@ struct ContentView: View {
                 }
                 .tag(Tab.insights)
 
-            ExportView()
+            ProfileView()
                 .tabItem {
-                    Label("Export", systemImage: "arrow.up.doc")
+                    Label("Profile", systemImage: selectedTab == .profile ? "person.fill" : "person")
                 }
-                .tag(Tab.settings)
+                .tag(Tab.profile)
         }
-        .tint(Color.auraeTeal)
+        .tint(Color.auraePrimary)
     }
 }
 
 // MARK: - Tab enum
 
 private enum Tab: Hashable {
-    case home, history, insights, settings
+    case home, history, insights, profile
 }
 
-// MARK: - Placeholder views
-//
-// SettingsPlaceholderView stays until Step 17 ships the real Settings screen.
+// MARK: - ProfileView placeholder
 
-private struct SettingsPlaceholderView: View {
+/// Local-only profile: display name, app stats, settings, data controls.
+/// No user accounts — all data is stored on-device.
+struct ProfileView: View {
+
+    @AppStorage("userDisplayName") private var displayName: String = ""
+    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
+    @AppStorage("darkModePreference") private var darkModePreference: String = "system"
+
+    @Query(sort: [SortDescriptor(\HeadacheLog.onsetTime, order: .reverse)])
+    private var logs: [HeadacheLog]
+
+    @State private var showExport = false
+
+    private var totalLogs: Int { logs.count }
+
+    private var dayStreak: Int {
+        guard let first = logs.first(where: { !$0.isActive }) else { return 0 }
+        return Calendar.current.dateComponents([.day], from: first.onsetTime, to: .now).day ?? 0
+    }
+
+    private var trackingSinceText: String {
+        guard let earliest = logs.last else { return "No logs yet" }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM yyyy"
+        return "Tracking since \(fmt.string(from: earliest.onsetTime))"
+    }
+
     var body: some View {
-        PlaceholderScreen(
-            icon: "gearshape",
-            title: "Settings",
-            subtitle: "Preferences, export, and data controls."
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AuraeSpacing.xxl) {
+                    headerSection
+                    statsCard
+                    accountSection
+                    dataSection
+                    supportSection
+                    appFooter
+                }
+                .padding(.horizontal, Layout.screenPadding)
+                .padding(.top, AuraeSpacing.xl)
+                .padding(.bottom, AuraeSpacing.xxxl)
+            }
+            .background(Color.auraeAdaptiveBackground.ignoresSafeArea())
+            .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showExport) {
+            ExportView()
+        }
+    }
+
+    // MARK: Header
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: AuraeSpacing.xs) {
+            Text("Profile")
+                .font(.auraeLargeTitle)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            Text(trackingSinceText)
+                .font(.auraeCaption)
+                .foregroundStyle(Color.auraeTextSecondary)
+        }
+    }
+
+    // MARK: Stats card
+
+    private var statsCard: some View {
+        HStack(spacing: 0) {
+            statColumn(value: "\(totalLogs)", label: "Total Logs")
+            Divider()
+                .frame(height: 36)
+                .background(Color.auraeBorder)
+            statColumn(value: "\(dayStreak)", label: "Day Streak")
+            Divider()
+                .frame(height: 36)
+                .background(Color.auraeBorder)
+            statColumn(value: "—", label: "Triggers Found")
+        }
+        .padding(Layout.cardPadding)
+        .background(Color.auraeAdaptiveCard)
+        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                .strokeBorder(Color.auraeBorder, lineWidth: 1)
         )
     }
-}
 
-// MARK: - PlaceholderScreen
-
-/// Consistent empty-state template used by all placeholder tabs.
-private struct PlaceholderScreen: View {
-
-    let icon: String
-    let title: String
-    let subtitle: String
-    var isLocked: Bool = false
-
-    var body: some View {
-        ZStack {
-            Color.auraeBackground.ignoresSafeArea()
-
-            VStack(spacing: Layout.itemSpacing) {
-                ZStack(alignment: .topTrailing) {
-                    Circle()
-                        .fill(Color.auraeLavender)
-                        .frame(width: 72, height: 72)
-
-                    Image(systemName: icon)
-                        .font(.system(size: 28, weight: .light))
-                        .foregroundStyle(Color.auraeTeal)
-                        .frame(width: 72, height: 72)
-
-                    if isLocked {
-                        ZStack {
-                            Circle()
-                                .fill(Color.auraeNavy)
-                                .frame(width: 22, height: 22)
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(.white)
-                        }
-                        .offset(x: 4, y: -4)
-                    }
-                }
-
-                Text(title)
-                    .font(.auraeH2)
-                    .foregroundStyle(Color.auraeNavy)
-
-                Text(subtitle)
-                    .font(.auraeBody)
-                    .foregroundStyle(Color.auraeMidGray)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Layout.screenPadding * 2)
-            }
+    private func statColumn(value: String, label: String) -> some View {
+        VStack(spacing: AuraeSpacing.xxs) {
+            Text(value)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(Color.auraePrimary)
+            Text(label)
+                .font(.auraeCaption)
+                .foregroundStyle(Color.auraeTextSecondary)
+                .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: Account section
+
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
+            sectionHeader("ACCOUNT")
+            VStack(spacing: 0) {
+                settingsRow(icon: "person.circle", title: "Display Name", detail: displayName.isEmpty ? "Set name" : displayName)
+                Divider().padding(.leading, 52)
+                Toggle(isOn: $notificationsEnabled) {
+                    settingsRowLabel(icon: "bell", title: "Notifications")
+                }
+                .tint(Color.auraePrimary)
+                .padding(.horizontal, Layout.cardPadding)
+                .frame(minHeight: 52)
+                Divider().padding(.leading, 52)
+                Menu {
+                    Button("System Default") { darkModePreference = "system" }
+                    Button("Light")          { darkModePreference = "light" }
+                    Button("Dark")           { darkModePreference = "dark" }
+                } label: {
+                    settingsRow(icon: "circle.lefthalf.filled", title: "Appearance",
+                                detail: darkModePreference.capitalized)
+                }
+            }
+            .background(Color.auraeAdaptiveCard)
+            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: Data section
+
+    private var dataSection: some View {
+        VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
+            sectionHeader("DATA")
+            VStack(spacing: 0) {
+                Button { showExport = true } label: {
+                    settingsRow(icon: "arrow.down.doc", title: "Export Data", detail: nil)
+                }
+                Divider().padding(.leading, 52)
+                NavigationLink {
+                    privacyPlaceholder
+                } label: {
+                    settingsRow(icon: "lock.shield", title: "Privacy & Security", detail: nil)
+                }
+            }
+            .background(Color.auraeAdaptiveCard)
+            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: Support section
+
+    private var supportSection: some View {
+        VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
+            sectionHeader("SUPPORT")
+            VStack(spacing: 0) {
+                NavigationLink {
+                    helpPlaceholder
+                } label: {
+                    settingsRow(icon: "questionmark.circle", title: "Help & FAQ", detail: nil)
+                }
+            }
+            .background(Color.auraeAdaptiveCard)
+            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: Footer
+
+    private var appFooter: some View {
+        VStack(spacing: AuraeSpacing.xxs) {
+            Text("Aurae v1.0.0")
+            Text("Made with care for headache sufferers")
+        }
+        .font(.auraeCaption)
+        .foregroundStyle(Color.auraeTextSecondary)
+        .frame(maxWidth: .infinity)
+        .padding(.top, AuraeSpacing.xl)
+    }
+
+    // MARK: Helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.auraeCaption)
+            .fontWeight(.semibold)
+            .foregroundStyle(Color.auraeTextSecondary)
+            .tracking(1.2)
+    }
+
+    private func settingsRow(icon: String, title: String, detail: String?) -> some View {
+        HStack(spacing: AuraeSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                    .fill(Color.auraeAccent)
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.auraePrimary)
+            }
+            Text(title)
+                .font(.auraeBody)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            Spacer()
+            if let detail {
+                Text(detail)
+                    .font(.auraeCallout)
+                    .foregroundStyle(Color.auraeTextSecondary)
+            }
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.auraeTextSecondary.opacity(0.5))
+        }
+        .padding(.horizontal, Layout.cardPadding)
+        .frame(minHeight: 52)
+    }
+
+    private func settingsRowLabel(icon: String, title: String) -> some View {
+        HStack(spacing: AuraeSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                    .fill(Color.auraeAccent)
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.auraePrimary)
+            }
+            Text(title)
+                .font(.auraeBody)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+        }
+    }
+
+    // MARK: Placeholder destinations
+
+    private var privacyPlaceholder: some View {
+        VStack(spacing: AuraeSpacing.md) {
+            Text("Privacy & Security")
+                .font(.auraeTitle1)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            Text("All your data is stored locally on this device and never shared without your permission.")
+                .font(.auraeBody)
+                .foregroundStyle(Color.auraeTextSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Layout.screenPadding)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.auraeAdaptiveBackground.ignoresSafeArea())
+        .navigationTitle("Privacy & Security")
+    }
+
+    private var helpPlaceholder: some View {
+        VStack(spacing: AuraeSpacing.md) {
+            Text("Help & FAQ")
+                .font(.auraeTitle1)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            Text("Coming soon. For support, visit our website.")
+                .font(.auraeBody)
+                .foregroundStyle(Color.auraeTextSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.auraeAdaptiveBackground.ignoresSafeArea())
+        .navigationTitle("Help & FAQ")
     }
 }
 

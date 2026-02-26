@@ -41,9 +41,6 @@ final class HomeViewModel {
     // MARK: UI state
     // -------------------------------------------------------------------------
 
-    /// Selected severity before tapping Log. Defaults to Moderate per PRD.
-    var selectedSeverity: SeverityLevel = .moderate
-
     /// Blocks the Log button while an insert is in flight.
     var isLogging: Bool = false
 
@@ -52,6 +49,10 @@ final class HomeViewModel {
 
     /// Non-fatal insert error shown inline beneath the Log button.
     var loggingError: String? = nil
+
+    /// Set after resolveHeadache() completes so HomeView can present
+    /// the post-resolve retrospective sheet. Cleared when the sheet dismisses.
+    var logPendingRetrospective: HeadacheLog? = nil
 
     // -------------------------------------------------------------------------
     // MARK: Derived display state (fed by HomeView's @Query result)
@@ -63,6 +64,16 @@ final class HomeViewModel {
     /// The most recent log. Populated by updateRecentActivity(from:).
     /// Used to drive the active-headache banner and the resolve action.
     var mostRecentLog: HeadacheLog? = nil
+
+    /// Days since the last resolved headache. nil when no resolved logs exist
+    /// or a headache is currently active.
+    var daysSinceLastHeadache: Int? = nil
+
+    /// Weather snapshot from the most recent log, used by the ambient context card.
+    var lastLogWeather: WeatherSnapshot? = nil
+
+    /// Sleep hours from the most recent log's health snapshot, used by the ambient triptych.
+    var lastSleepHours: Double? = nil
 
     // -------------------------------------------------------------------------
     // MARK: Computed — greeting + date
@@ -102,7 +113,26 @@ final class HomeViewModel {
     /// Called by HomeView's .onChange(of: logs) each time SwiftData delivers
     /// a new result set. Derives display strings without caching the array.
     func updateRecentActivity(from logs: [HeadacheLog]) {
-        mostRecentLog = logs.first
+        lastLogWeather  = logs.first?.weather
+        lastSleepHours  = logs.first?.health?.sleepHours
+
+        let mostRecent = logs.first
+        mostRecentLog  = mostRecent
+
+        // D-29: daysSinceLastHeadache must be nil whenever an active headache
+        // exists. Displaying a stale streak count during an active episode is
+        // factually misleading. The right side of the header is empty while active.
+        if mostRecent?.isActive == true {
+            daysSinceLastHeadache = nil
+        } else {
+            let lastResolved = logs.first(where: { !$0.isActive })
+            if let last = lastResolved {
+                daysSinceLastHeadache = Calendar.current
+                    .dateComponents([.day], from: last.onsetTime, to: .now).day
+            } else {
+                daysSinceLastHeadache = nil
+            }
+        }
 
         guard let latest = logs.first else {
             recentActivityText = "No headaches logged yet."
@@ -132,11 +162,21 @@ final class HomeViewModel {
     /// Creates a HeadacheLog, persists it, shows the confirmation overlay,
     /// schedules the follow-up notification, and fires background capture.
     ///
+    /// Called by LogHeadacheModal on submission. Severity and onset speed are
+    /// captured interactively in the modal; location and symptoms are written
+    /// into a partial RetrospectiveEntry so the retrospective form pre-populates
+    /// them as already-selected on next open.
+    ///
     /// Guards:
-    /// - Ignores the tap if isLogging (double-tap prevention).
-    /// - Ignores the tap if a headache is already active — HomeView wires
-    ///   the button to resolveHeadache instead when hasActiveHeadache is true.
-    func logHeadache(context: ModelContext) {
+    /// - Ignores the call if isLogging (double-tap prevention).
+    /// - Ignores the call if a headache is already active.
+    func logHeadache(
+        severity:   SeverityLevel,
+        onsetSpeed: OnsetSpeed?,
+        location:   String,
+        symptoms:   [String],
+        context:    ModelContext
+    ) {
         guard !isLogging, !hasActiveHeadache else { return }
 
         isLogging    = true
@@ -144,8 +184,22 @@ final class HomeViewModel {
 
         let log = HeadacheLog(
             onsetTime: Date.now,
-            severity:  selectedSeverity.rawValue
+            severity:  severity.rawValue
         )
+        // D-33: capture onset speed at log time.
+        log.onsetSpeed = onsetSpeed
+
+        // Create a partial RetrospectiveEntry with any location/symptoms captured
+        // in the modal. The full retrospective form reads this on next open,
+        // showing those selections as already toggled on.
+        if !location.isEmpty || !symptoms.isEmpty {
+            let retro = RetrospectiveEntry(
+                symptoms:         symptoms,
+                headacheLocation: location.isEmpty ? nil : location
+            )
+            log.retrospective = retro
+            context.insert(retro)
+        }
 
         context.insert(log)
         do {
@@ -161,15 +215,13 @@ final class HomeViewModel {
         isLogging    = false
 
         // Schedule follow-up notification asynchronously — does not block UI.
-        // preferredDelay is fetched inside the Task so it reflects any
-        // UserDefaults value the user may have changed in Settings.
-        let logID     = log.id
-        let severity  = log.severity
-        let onsetTime = log.onsetTime
+        let logID       = log.id
+        let logSeverity = log.severity
+        let onsetTime   = log.onsetTime
         Task {
             await NotificationService.shared.scheduleFollowUp(
                 logID:     logID,
-                severity:  severity,
+                severity:  logSeverity,
                 onsetTime: onsetTime
             )
         }
@@ -194,6 +246,11 @@ final class HomeViewModel {
         Task {
             await NotificationService.shared.cancelFollowUp(for: logID)
         }
+
+        // Signal HomeView to present the post-resolve retrospective sheet.
+        // LogDetailView has its own retrospective path and does not go through
+        // this method, so this assignment only fires on the HomeView resolve path.
+        logPendingRetrospective = log
     }
 
     // =========================================================================

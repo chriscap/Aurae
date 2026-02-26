@@ -69,7 +69,7 @@ struct EnvironmentSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Location")
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             SingleSelectPillGroup(
                 options:  RetrospectiveViewModel.locationOptions,
@@ -77,7 +77,7 @@ struct EnvironmentSection: View {
             )
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -89,7 +89,7 @@ struct EnvironmentSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Type")
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             SingleSelectPillGroup(
                 options:  RetrospectiveViewModel.headacheTypeOptions.map(\.label),
@@ -98,9 +98,16 @@ struct EnvironmentSection: View {
                 ),
                 selected: $headacheType
             )
+
+            // D-24 (22 Feb 2026): Non-dismissible inline disclaimer required by
+            // clinical review. The headache type taxonomy is user-selected, not
+            // clinically validated — the UI must reflect that ambiguity.
+            Text("Self-reported. Select the type that best matches your experience.")
+                .font(.auraeCaption)
+                .foregroundStyle(Color.auraeMidGray)
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -112,7 +119,7 @@ struct EnvironmentSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Cycle Phase")
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             SingleSelectPillGroup(
                 options:  RetrospectiveViewModel.cyclePhaseOptions.map(\.label),
@@ -123,7 +130,7 @@ struct EnvironmentSection: View {
             )
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -135,7 +142,7 @@ struct EnvironmentSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Notes")
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             ZStack(alignment: .topLeading) {
                 if notes.isEmpty {
@@ -148,12 +155,12 @@ struct EnvironmentSection: View {
                 }
                 TextEditor(text: $notes)
                     .font(.auraeBody)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                     .frame(minHeight: 100)
                     .scrollContentBackground(.hidden)
             }
             .padding(Layout.cardPadding)
-            .background(Color(.secondarySystemBackground))
+            .background(Color.auraeAdaptiveSecondary)
             .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
         }
     }
@@ -182,5 +189,5 @@ struct EnvironmentSection: View {
         )
         .padding(Layout.screenPadding)
     }
-    .background(Color.auraeBackground)
+    .background(Color.auraeAdaptiveBackground)
 }

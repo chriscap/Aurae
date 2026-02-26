@@ -370,11 +370,13 @@ extension InsightsService {
         }
     }
 
+    // D-21 (22 Feb 2026): Statistical correlation language is prohibited.
+    // Use frequency-based language to match InsightsService.correlationLabel().
     private func correlationLabel(strength: Double) -> String {
         switch strength {
-        case 0.7...:       return "Strong correlation"
-        case 0.4..<0.7:    return "Moderate correlation"
-        default:           return "Weak correlation"
+        case 0.7...:     return "Frequently present"
+        case 0.4..<0.7:  return "Sometimes present"
+        default:         return "Occasionally present"
         }
     }
 }

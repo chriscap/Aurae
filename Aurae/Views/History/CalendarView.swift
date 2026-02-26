@@ -43,8 +43,13 @@ struct CalendarView: View {
         count: 7
     )
 
-    /// Fixed Sun–Sat abbreviations (locale-independent for predictability).
-    private let weekdayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    /// Locale-aware weekday abbreviations ordered from the locale's first weekday.
+    private var weekdayLabels: [String] {
+        let calendar = Calendar.current
+        let symbols = calendar.veryShortWeekdaySymbols
+        let first = calendar.firstWeekday - 1
+        return Array(symbols[first...] + symbols[..<first])
+    }
 
     // MARK: - Body
 
@@ -60,14 +65,14 @@ struct CalendarView: View {
                 .padding(.bottom, 4)
 
             Divider()
-                .overlay(Color.auraeLavender)
+                .overlay(Color.auraeAdaptiveSecondary)
                 .padding(.bottom, 4)
 
             dayGrid
                 .padding(.horizontal, Layout.screenPadding)
                 .padding(.bottom, Layout.itemSpacing)
         }
-        .background(Color.auraeBackground)
+        .background(Color.auraeAdaptiveBackground)
         .sheet(item: $selectedDay) { day in
             DayDetailSheet(
                 day:           day.id,
@@ -90,7 +95,7 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                     .frame(width: Layout.minTapTarget, height: Layout.minTapTarget)
                     .contentShape(Rectangle())
             }
@@ -100,7 +105,7 @@ struct CalendarView: View {
 
             Text(viewModel.selectedMonthTitle)
                 .font(.auraeH2)
-                .foregroundStyle(Color.auraeNavy)
+                .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             Spacer()
 
@@ -113,7 +118,7 @@ struct CalendarView: View {
                     .foregroundStyle(
                         viewModel.isCurrentMonth
                             ? Color.auraeMidGray.opacity(0.30)
-                            : Color.auraeNavy
+                            : Color.auraeAdaptivePrimaryText
                     )
                     .frame(width: Layout.minTapTarget, height: Layout.minTapTarget)
                     .contentShape(Rectangle())
@@ -132,6 +137,9 @@ struct CalendarView: View {
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeMidGray)
                     .frame(maxWidth: .infinity)
+                    // Column headers are decorative — the date cells carry the
+                    // full accessibility information including the weekday. (A18-01)
+                    .accessibilityHidden(true)
             }
         }
     }
@@ -153,6 +161,7 @@ struct CalendarView: View {
             ForEach(1...daysInMonth, id: \.self) { day in
                 DayCell(
                     day:        day,
+                    month:      viewModel.selectedMonth,
                     logs:       viewModel.logsByDay[day] ?? [],
                     isToday:    isThisMonth && day == todayDay,
                     isSelected: selectedDay?.id == day
@@ -173,7 +182,7 @@ struct CalendarView: View {
         let firstDay    = calendar.startOfMonth(for: month)
         // weekday is 1-based: 1 = Sunday, 7 = Saturday
         let weekdayRaw  = calendar.component(.weekday, from: firstDay)
-        let leading     = weekdayRaw - 1
+        let leading     = (weekdayRaw - calendar.firstWeekday + 7) % 7
         let daysInMonth = calendar.range(of: .day, in: .month, for: month)?.count ?? 30
         return (leading, daysInMonth)
     }
@@ -184,6 +193,7 @@ struct CalendarView: View {
 private struct DayCell: View {
 
     let day:        Int
+    let month:      Date
     let logs:       [HeadacheLog]
     let isToday:    Bool
     let isSelected: Bool
@@ -195,26 +205,28 @@ private struct DayCell: View {
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .center) {
-                // Selected highlight fill (behind the content)
+                // Selected highlight fill — decorative, absorbed by the button label.
                 if isSelected && hasLogs {
                     Circle()
-                        .fill(Color.auraeTeal.opacity(0.10))
+                        .fill(Color.auraePrimary.opacity(0.10))
                         .frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
                 }
 
-                // Today ring
+                // Today ring — decorative, "today" is communicated via the label.
                 if isToday {
                     Circle()
-                        .stroke(Color.auraeTeal, lineWidth: 1.5)
+                        .stroke(Color.auraePrimary, lineWidth: 1.5)
                         .frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
                 }
 
                 VStack(spacing: 2) {
                     Text("\(day)")
                         .font(.jakarta(12, weight: isToday ? .semibold : .regular))
                         .foregroundStyle(
-                            isToday  ? Color.auraeTeal :
-                            hasLogs  ? Color.auraeNavy :
+                            isToday  ? Color.auraePrimary :
+                            hasLogs  ? Color.auraeAdaptivePrimaryText :
                                        Color.auraeMidGray
                         )
 
@@ -232,36 +244,59 @@ private struct DayCell: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(cellAccessibilityLabel)
+        .accessibilityAddTraits(isToday ? .isSelected : [])
         .accessibilityHint(hasLogs ? "Tap to view headaches on this day" : "")
     }
 
     private var severityDot: some View {
         ZStack(alignment: .topTrailing) {
+            // Decorative dot — colour conveys severity but label carries the text.
             Circle()
                 .fill(Color.severityAccent(for: maxSeverity))
                 .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
 
             if logs.count > 1 {
                 Text("\(logs.count)")
                     .font(.jakarta(6, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.auraeStarlight)
                     .frame(width: 11, height: 11)
-                    .background(Color.auraeNavy)
+                    .background(Color.auraeAdaptivePrimaryText)
                     .clipShape(Circle())
                     .offset(x: 7, y: -7)
+                    .accessibilityHidden(true)
             }
         }
+        .accessibilityHidden(true)
     }
 
+    /// Produces a full human-readable label such as "March 15, today, 2 headaches".
+    /// Uses the month date to construct the correct calendar date for formatting.
     private var cellAccessibilityLabel: String {
-        switch logs.count {
-        case 0: return "Day \(day), no headaches"
-        case 1:
-            let label = SeverityLevel(rawValue: max(1, min(5, maxSeverity)))?.label ?? ""
-            return "Day \(day), 1 headache, \(label) severity. Tap to view."
-        default:
-            return "Day \(day), \(logs.count) headaches. Tap to view."
+        // Reconstruct the full date so the formatter produces a month name.
+        let date = Calendar.current.date(bySetting: .day, value: day, of: month)
+
+        let dateString: String
+        if let date {
+            dateString = date.formatted(.dateTime.month(.wide).day())
+        } else {
+            dateString = "Day \(day)"
         }
+
+        var parts: [String] = [dateString]
+        if isToday { parts.append("today") }
+
+        switch logs.count {
+        case 0:
+            parts.append("no headaches")
+        case 1:
+            let severityLabel = SeverityLevel(rawValue: max(1, min(5, maxSeverity)))?.label ?? ""
+            parts.append("1 headache, \(severityLabel) severity")
+        default:
+            parts.append("\(logs.count) headaches")
+        }
+
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -291,7 +326,7 @@ struct DayDetailSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.auraeBackground.ignoresSafeArea()
+                Color.auraeAdaptiveBackground.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: Layout.itemSpacing) {

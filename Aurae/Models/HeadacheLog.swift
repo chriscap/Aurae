@@ -17,6 +17,20 @@
 import Foundation
 import SwiftData
 
+// MARK: - OnsetSpeed (D-33)
+
+/// Describes how quickly a headache reached peak intensity at the time of logging.
+/// Added at v1.6 (23 Feb 2026) per clinical requirement D-33.
+///
+/// The `.instantaneous` case maps to the ICHD-3 definition of thunderclap headache
+/// (maximum intensity within 1 minute). The word "thunderclap" must NOT appear in any
+/// user-facing copy — it implies diagnostic classification.
+enum OnsetSpeed: String, Codable {
+    case gradual        // "Gradually, over 30 minutes or more"
+    case moderate       // "Quickly, within about 1 to 30 minutes"
+    case instantaneous  // "Almost instantly, within seconds to about a minute"
+}
+
 @Model
 final class HeadacheLog {
 
@@ -59,6 +73,19 @@ final class HeadacheLog {
     /// opens the retrospective flow.
     @Relationship(deleteRule: .cascade)
     var retrospective: RetrospectiveEntry?
+
+    // MARK: - Clinical fields (v1.6)
+
+    /// Onset speed selected by the user at log time (D-33).
+    /// Nil when the user selects "Not sure" or does not answer.
+    /// A nil value triggers no safety banner — it is always treated as no signal.
+    var onsetSpeed: OnsetSpeed? = nil
+
+    /// Per-log flag tracking whether the user has dismissed the red-flag safety
+    /// banner for this specific log (D-31). Replaces the former global
+    /// `hasSeenRedFlagBanner` @AppStorage boolean.
+    /// Reset per-log so future triggering logs always show the banner fresh.
+    var hasAcknowledgedRedFlag: Bool = false
 
     // MARK: - Metadata
 

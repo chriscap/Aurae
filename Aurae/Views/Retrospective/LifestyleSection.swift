@@ -63,7 +63,7 @@ struct LifestyleSection: View {
             HStack {
                 Text("Sleep")
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
                 Spacer()
 
@@ -71,22 +71,22 @@ struct LifestyleSection: View {
                 if sleepPrefilledFromHealth {
                     Label("Apple Health", systemImage: "heart.fill")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeTeal)
+                        .foregroundStyle(Color.auraePrimary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(Color.auraeSoftTeal)
+                        .background(Color.auraeAccent)
                         .clipShape(Capsule())
                 }
 
                 // Current value label
                 Text(sleepHoursSet ? formatSleep(sleepHours) : "Not set")
                     .font(.auraeLabel)
-                    .foregroundStyle(sleepHoursSet ? Color.auraeNavy : Color.auraeMidGray)
+                    .foregroundStyle(sleepHoursSet ? Color.auraeAdaptivePrimaryText : Color.auraeMidGray)
                     .frame(minWidth: 52, alignment: .trailing)
             }
 
             Slider(value: $sleepHours, in: 0...12, step: 0.5)
-                .tint(Color.auraeTeal)
+                .tint(Color.auraePrimary)
                 .onChange(of: sleepHours) { _, _ in
                     sleepHoursSet = true
                 }
@@ -105,7 +105,7 @@ struct LifestyleSection: View {
             .foregroundStyle(Color.auraeMidGray)
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -118,7 +118,7 @@ struct LifestyleSection: View {
             HStack {
                 Text("Stress level")
                     .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeNavy)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 Spacer()
                 if stressLevel > 0 {
                     Text(stressLabel(stressLevel))
@@ -139,13 +139,13 @@ struct LifestyleSection: View {
                     } label: {
                         Text("\(level)")
                             .font(.auraeLabel)
-                            .foregroundStyle(stressLevel == level ? .white : Color.auraeNavy)
+                            .foregroundStyle(stressLevel == level ? Color.auraeTealAccessible : Color.auraeAdaptivePrimaryText)
                             .frame(maxWidth: .infinity)
                             .frame(height: Layout.severityPillHeight)
                             .background(
                                 stressLevel == level
-                                    ? Color.auraeTeal
-                                    : Color.auraeLavender
+                                    ? Color.auraeAdaptiveSoftTeal
+                                    : Color.auraeAdaptiveSecondary
                             )
                             .clipShape(RoundedRectangle(cornerRadius: Layout.severityPillRadius, style: .continuous))
                     }
@@ -156,7 +156,7 @@ struct LifestyleSection: View {
             }
         }
         .padding(Layout.cardPadding)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.auraeAdaptiveSecondary)
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
     }
 
@@ -203,5 +203,5 @@ struct LifestyleSection: View {
         )
         .padding(Layout.screenPadding)
     }
-    .background(Color.auraeBackground)
+    .background(Color.auraeAdaptiveBackground)
 }
