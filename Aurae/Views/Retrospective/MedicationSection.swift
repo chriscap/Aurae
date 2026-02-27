@@ -53,6 +53,16 @@ struct MedicationSection: View {
                 RetroStarRating(label: "How much did it help?", rating: $medicationEffectiveness)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
+
+            // Clinical safety disclaimer — required by clinical advisor.
+            // Do not remove without clinical + legal sign-off.
+            Text("Medication records are for your reference and to support conversations with your care team. Do not adjust or stop any medication based on patterns observed in this app.")
+                .font(.auraeCaption)
+                .foregroundStyle(Color.auraeMidGray)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, Layout.cardPadding)
+                .accessibilityLabel("Disclaimer: medication records support clinician conversations. Do not adjust medication based on app patterns.")
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: medicationName.isEmpty)
     }

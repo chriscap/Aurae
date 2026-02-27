@@ -570,6 +570,16 @@ extension InsightsView {
                         )
                     }
                 }
+
+                // Correlational disclaimer — required by clinical advisor.
+                // These patterns are associative, not causal or confirmed.
+                Text("These patterns reflect associations in your logged data. They are not confirmed triggers and may change as you log more episodes. Share them with your care team to explore what they mean for you.")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
+                    .accessibilityLabel("Disclaimer: patterns are associations in your data, not confirmed triggers.")
             }
         }
     }

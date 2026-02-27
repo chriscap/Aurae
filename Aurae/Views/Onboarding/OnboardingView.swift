@@ -6,12 +6,13 @@
 //  Dismissed when the user taps "Let's go" on the final screen, which sets
 //  @AppStorage("hasCompletedOnboarding") = true in AuraeApp.
 //
-//  5 screens delivered via a TabView with .page style:
+//  6 screens delivered via a TabView with .page style:
 //    1. Welcome        — headline + logo + "Get Started"
 //    2. How it works   — 3 auto-capture feature rows + "Next"
 //    3. Retrospective  — 3 manual-entry feature rows + "Next"
 //    4. Insights       — premium preview card (locked) + "Next"
-//    5. Permissions    — 3 permission explanations + "Let's go"
+//    5. Safety         — red-flag symptoms + aura clarification + "Next"
+//    6. Permissions    — 3 permission explanations + "Let's go"
 //
 //  Navigation rules:
 //  - "Get Started" on screen 1 advances to screen 2.
@@ -39,7 +40,7 @@ struct OnboardingView: View {
     @State private var currentPage: Int = 0
 
     // The total number of pages — used for the dot indicator and bounds checks.
-    private let pageCount: Int = 5
+    private let pageCount: Int = 6
 
     // Page indices as constants to avoid magic literals throughout.
     private enum Page {
@@ -47,7 +48,8 @@ struct OnboardingView: View {
         static let howItWorks:    Int = 1
         static let retrospective: Int = 2
         static let insights:      Int = 3
-        static let permissions:   Int = 4
+        static let safety:        Int = 4
+        static let permissions:   Int = 5
     }
 
     var body: some View {
@@ -73,6 +75,9 @@ struct OnboardingView: View {
                     InsightsPage(onNext: advance)
                         .tag(Page.insights)
 
+                    SafetyPage(onNext: advance)
+                        .tag(Page.safety)
+
                     PermissionsPage(onComplete: onComplete)
                         .tag(Page.permissions)
                 }
@@ -92,7 +97,7 @@ struct OnboardingView: View {
     private var skipRow: some View {
         HStack {
             Spacer()
-            if currentPage >= Page.howItWorks && currentPage <= Page.insights {
+            if currentPage >= Page.howItWorks && currentPage <= Page.safety {
                 Button {
                     withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
                         currentPage = Page.permissions
@@ -371,7 +376,118 @@ private struct MockInsightsCard: View {
     }
 }
 
-// MARK: - Screen 5: Permissions
+// MARK: - Screen 5: Safety
+
+/// "Before you start logging" — red-flag symptom awareness and aura clarification.
+/// Clinical requirement: shown once to every new user during onboarding.
+private struct SafetyPage: View {
+    let onNext: () -> Void
+
+    private struct RedFlagItem {
+        let icon: String
+        let color: Color
+        let text: String
+    }
+
+    private let items: [RedFlagItem] = [
+        RedFlagItem(
+            icon: "bolt.fill",
+            color: Color.auraeDestructive,
+            text: "A sudden, severe headache unlike any you've had before."
+        ),
+        RedFlagItem(
+            icon: "thermometer.medium",
+            color: Color.auraeAmber,
+            text: "Headache with fever, stiff neck, confusion, or vision changes."
+        ),
+        RedFlagItem(
+            icon: "figure.fall",
+            color: Color.auraeIndigo,
+            text: "A headache following a head injury."
+        ),
+        RedFlagItem(
+            icon: "waveform.path.ecg",
+            color: Color.auraeIndigo,
+            text: "New weakness, numbness, or difficulty speaking."
+        )
+    ]
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Before you start logging.")
+                        .font(.fraunces(28, weight: .semibold))
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
+
+                    Text("Aurae is designed for recurring headaches you already know about.")
+                        .font(.auraeBody)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .lineSpacing(4)
+                }
+                .padding(.top, 8)
+
+                // Red flag symptom rows
+                VStack(spacing: Layout.itemSpacing) {
+                    ForEach(items, id: \.text) { item in
+                        FeatureRow(
+                            icon: item.icon,
+                            iconColor: item.color,
+                            description: item.text
+                        )
+                    }
+                }
+
+                // Seek-care callout
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "cross.circle.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.auraeDestructive)
+                        .accessibilityHidden(true)
+                    Text("If you experience any of these, please seek medical care right away. These symptoms are not what this app is designed to track.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(Layout.cardPadding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.auraeAdaptiveBlush)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityElement(children: .combine)
+
+                // Aura name clarification
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.auraePrimary)
+                        .accessibilityHidden(true)
+                    Text("Aurae is designed for anyone who experiences recurring headaches, whether or not you experience aura or have a migraine diagnosis.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(Layout.cardPadding)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.auraeAdaptiveSoftTeal)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityElement(children: .combine)
+            }
+            .padding(.horizontal, Layout.screenPadding)
+            .padding(.bottom, 16)
+        }
+        .safeAreaInset(edge: .bottom) {
+            AuraeButton("Next", action: onNext)
+                .accessibilityHint("Continues to permissions setup")
+                .padding(.horizontal, Layout.screenPadding)
+                .padding(.vertical, Layout.itemSpacing)
+                .background(Color.auraeAdaptiveBackground)
+        }
+    }
+}
+
+// MARK: - Screen 6: Permissions
 
 private struct PermissionsPage: View {
     let onComplete: () -> Void

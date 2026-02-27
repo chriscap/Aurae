@@ -85,6 +85,7 @@ struct ProfileView: View {
     @State private var showExport = false
     @State private var showNameEdit = false
     @State private var nameEditText = ""
+    @State private var showMedicalEscalation = false
 
     private var totalLogs: Int { logs.count }
 
@@ -120,6 +121,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showExport) {
             ExportView()
+        }
+        .sheet(isPresented: $showMedicalEscalation) {
+            MedicalEscalationView()
         }
         .alert("Display Name", isPresented: $showNameEdit) {
             TextField("Your name", text: $nameEditText)
@@ -250,6 +254,11 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
             sectionHeader("SUPPORT")
             VStack(spacing: 0) {
+                Button { showMedicalEscalation = true } label: {
+                    settingsRow(icon: "cross.circle", title: "When to Seek Medical Care", detail: nil)
+                }
+                .buttonStyle(.plain)
+                Divider().padding(.leading, 52)
                 NavigationLink {
                     helpPlaceholder
                 } label: {
