@@ -5,8 +5,8 @@
 | | |
 |---|---|
 | **Document Type** | Product Requirements Document (PRD) |
-| **Version** | 1.6 — In Development |
-| **Date** | February 2026 (updated 23 Feb 2026) |
+| **Version** | 1.7 — In Development |
+| **Date** | February 2026 (updated 27 Feb 2026) |
 | **Platform** | iOS (iPhone-first) |
 | **Stage** | In Development |
 | **Monetization** | Freemium |
@@ -15,7 +15,7 @@
 
 ## 1. Executive Summary
 
-Aurae is an iOS application that helps headache and migraine sufferers understand, track, and manage their condition through intelligent contextual logging. Unlike basic headache diaries that depend on manual recall, Aurae automatically captures environmental and physiological data at the moment of onset — then connects the dots across time to reveal personal trigger patterns.
+Aurae is an iOS application that helps headache and migraine sufferers understand, track, and manage their condition through intelligent contextual logging. Unlike basic headache diaries that depend on manual recall, Aurae automatically captures environmental and physiological data at the moment of onset — then connects the dots across time to reveal personal patterns.
 
 The app targets a broad audience ranging from casual headache sufferers to chronic migraine patients. A freemium model makes core logging free and accessible while unlocking on-device pattern analysis, advanced analytics, and clinical export tools for premium subscribers.
 
@@ -133,8 +133,9 @@ After a headache resolves, the user is invited to enrich the log with retrospect
 - Sleep quality (manual 1–5 if not auto-filled), sleep hours, stress level (1–5 scale), and screen time.
 
 #### Medication
-- Medication taken (searchable list + free text), dose, timing, and effectiveness rating (1–5).
+- Medication taken (searchable list + free text), dose, timing, and effectiveness rating (1–5, labeled "How much did it help?").
 - Each medication entry includes a classification toggle with two options: **"For headache relief"** (acute) and **"Daily as prescribed"** (preventive). This maps to the `medicationIsAcute: Bool?` field on `RetrospectiveEntry`. The toggle is shown immediately below the medication name field in the Medication section. Default state is unselected (nil). When nil, the entry is conservatively counted toward the acute total unless the medication name matches a known preventive list (implementation detail for engineering).
+- **Clinical safety disclaimer:** A non-removable caption is displayed in the Medication section below the effectiveness field: "Medication records are for your reference and to support conversations with your care team. Do not adjust or stop any medication based on patterns observed in this app." This is a clinical advisor requirement and must not be removed without clinical and legal sign-off.
 - **Medication overuse awareness warning:** An inline card appears in the Insights tab (ungated — visible to all users, free and premium) when the user has logged entries classified as acute in 10 or more distinct calendar days within the current month. The warning uses the following copy verbatim: "You've logged acute medication for headache relief more than 10 times this month. Frequent use of certain pain relievers may be associated with rebound headaches in some people. This is for your awareness only — not a diagnosis. It may be worth mentioning this pattern to your healthcare provider." The card includes a link to the "When to Seek Medical Care" screen. Only acute-classified medications (`medicationIsAcute == true`, or nil with conservative fallback) count toward this threshold. Preventive medications (`medicationIsAcute == false`) are explicitly excluded from the count.
 
 #### Women's Health
@@ -176,9 +177,9 @@ Pattern analysis does not surface until sufficient data exists to avoid statisti
 
 #### Insights Disclaimer
 
-A compact disclaimer is displayed on the Insights tab. It is shown prominently on the user's first visit to Insights and may be dismissed after reading. After dismissal, a condensed single-line version ("Patterns are for informational purposes only — not medical advice.") remains as a persistent footer at the bottom of the Insights tab on every visit.
+A compact disclaimer is displayed on the Insights tab. It is shown prominently on the user's first visit to Insights and may be dismissed after reading. After dismissal, a condensed single-line version ("For informational purposes only · Not medical advice") remains as a persistent footer at the bottom of the Insights tab on every visit.
 
-Full disclaimer text (first-view): "Patterns are based on your logged data only. For informational purposes only. Not a medical diagnosis. Discuss findings with your healthcare provider."
+Full disclaimer text (first-view): "Patterns are based on your logged data only. They are for informational purposes and do not constitute medical advice."
 
 #### First Insights Educational Interstitial
 
@@ -193,13 +194,14 @@ This interstitial is shown once only. It is not a paywall — it is an education
 
 #### Patterns Computed
 
-- **Top suspected triggers** — ranked by co-occurrence frequency (e.g. "You had a headache within 24 hours of poor sleep in 7 of your last 9 episodes").
+- **Top suspected triggers** — ranked by co-occurrence frequency (e.g. "You had a headache within 24 hours of poor sleep in 7 of your last 9 episodes"). A correlational disclaimer is displayed below trigger bars: "These patterns reflect associations in your logged data. They are not confirmed triggers and may change as you log more episodes. Share them with your care team to explore what they mean for you."
 - **Weather correlation** — does barometric pressure drop or humidity spike precede your headaches? (Requires 10+ resolved logs.)
 - **Day-of-week and time-of-day patterns** — frequency analysis across calendar dimensions.
 - **Sleep correlation** — relationship between previous-night sleep duration/quality and headache onset. (Requires 5+ entries per group.)
 - **Medication effectiveness trends** — what worked, and how quickly?
 - **Streak and frequency trends** — headache-free streaks and rolling frequency over time.
 - Weekly and monthly frequency charts with trend lines.
+- **Episode count trust signal** — the full insights view displays "Based on your N logged episodes" as a caption at the top of the scroll view. This grounds the analysis in its actual data source and sets accurate user expectations.
 
 Insights are presented in plain, empathetic language — not medical diagnoses. No health data leaves the device.
 
@@ -210,7 +212,7 @@ Insights are presented in plain, empathetic language — not medical diagnoses. 
 Users can generate a structured, print-ready PDF report suitable for sharing with a neurologist, GP, or headache clinic.
 
 #### Free Tier
-- Summary table with 7 columns: Date, Time, Severity, Duration, Weather (temperature + condition), Medication, Notes (truncated to 40 characters). Selectable date range. Generated on-device via PDFKit. A4 portrait, Aurae-branded header with teal accent bar, Fraunces title, and "Generated by Aurae" footer.
+- Summary table with 7 columns: Date, Time, Severity, Duration, Weather (temperature + condition), Medication, Notes (truncated to 40 characters). Selectable date range. Generated on-device via PDFKit. A4 portrait, Aurae-branded header with teal accent bar, and "Generated by Aurae" footer.
 
 #### Premium Tier
 - All free content plus full contextual data per headache (weather, sleep, lifestyle, food, symptoms).
@@ -250,6 +252,8 @@ The following palette is implemented in `DesignSystem/Colors.swift` and replaces
 
 **Key gradient:** `auraePrimaryGradient` — `#8AC4C1` → `#B6A6CA` at 45°. Restricted to: paywall hero, premium badge, logomark, and upgrade CTA. Do not use this gradient elsewhere.
 
+**Brand mark gradient:** `auraeMarkGradient` — `#2D7D7D` → `#B3A8D9` (original brand teal to violet). Used exclusively for `AuraeLogoMark` and deliberate brand gradient moments. **Do not substitute with `auraePrimaryGradient`** — these are distinct color intentions. `auraeMarkGradient` uses the original brand palette; `auraePrimaryGradient` uses the functional UI palette.
+
 **Dark mode surfaces:** Deep Slate `#1A1D24` (L0) / `#22262F` (L1) / Card Dark `#2A2E39` (L2).
 
 **Accessibility note:** The primary CTA button label is rendered in `auraeSeverityLabelSelected` (`#1C2826`, dark ink) on the `auraeTeal` fill. White text on `#8AC4C1` fails WCAG AA (1.95:1) and must not be used. This is a firm accessibility-first decision — see D-12.
@@ -258,12 +262,28 @@ Reduce Motion and Increase Contrast accessibility settings must be honoured thro
 
 ### 6.2 Typography
 
-Aurae uses two typefaces that together communicate warmth, craft, and legibility:
+Aurae uses two typefaces that together communicate editorial warmth and legibility:
 
-- **Fraunces** — display and heading typeface. A variable "wonky" serif with optical size axes, inspired by old-style type with a contemporary twist. Used for all H1/H2 headings, the app name, and key display numbers.
-- **Plus Jakarta Sans** — body and UI typeface. A geometric sans-serif with strong legibility at small sizes and a friendly, modern personality. Used for all body copy, labels, navigation, table content, and form fields.
-- Type scale: Display (48pt+) for home screen hero elements, H1 (32pt) section headings, H2 (22pt) subsections, Body (16pt) reading copy, Caption (13pt) metadata.
-- Dynamic Type support — all text must scale with iOS accessibility font sizes.
+- **DM Serif Display** — display and heading typeface for onboarding and editorial moments. Used via `dmSerifDisplay()` / `fraunces()` aliases. **Critical rule: DM Serif Display is only used at 26pt or larger.** Its high stroke contrast causes thin strokes to vanish at smaller sizes on dark surfaces. Below 26pt, use DM Sans weight variants for hierarchy.
+- **DM Sans** — body and UI typeface. Used via `dmSans()` / `jakarta()` aliases. Handles all body copy, labels, navigation, table content, form fields, and all UI text below 26pt.
+
+**Typography hierarchy below 26pt (DM Sans):**
+- SemiBold (600) — structural headings, button labels, section titles
+- Medium (500) — prompts, section labels, secondary UI text
+- Regular (400) — body copy, captions, metadata
+
+**Semantic type scale (implemented in `Typography.swift`):**
+- `auraeDisplay` (44pt Bold) — home screen hero numerals (streak count)
+- `auraeH1` (26pt SemiBold) — top-level section headings
+- `auraeH2` (20pt SemiBold) — sub-section headings and card titles
+- `auraeSectionLabel` (17pt Medium) — section prompts, questions
+- `auraeSecondaryLabel` (14pt Medium) — card sub-headings, category names
+- `auraeBody` (16pt Regular) — reading copy and form fields
+- `auraeCaption` (12pt Regular) — timestamps, metadata, fine print
+
+Dynamic Type support — all text must scale with iOS accessibility font sizes.
+
+> **QA flag (open):** Validate DM Serif Display rendering under Dynamic Type / Accessibility Extra Large before App Store submission. High-stroke-contrast typefaces can degrade at extreme Dynamic Type sizes on dark surfaces.
 
 ### 6.3 Layout Principles
 
@@ -274,7 +294,18 @@ Aurae uses two typefaces that together communicate warmth, craft, and legibility
 - Smooth spring-physics transitions — no abrupt cuts.
 - Iconography: line-based, minimal, never cartoonish.
 
-### 6.4 Home Screen Layout
+### 6.4 Icon Container System
+
+All icon containers throughout the app use a consistent visual system:
+
+- **Shape:** `RoundedRectangle` with `.continuous` style — not `Circle`. This applies to all icon badge containers in feature rows, stat cards, onboarding rows, and any other icon badge context.
+- **Fill:** Icon color at `opacity(0.12)` — a subtle tinted surface that echoes the icon's semantic color without competing with it.
+- **Symbol weight:** `.medium` for all SF Symbols inside icon containers. This matches the stroke weight of the surrounding UI and avoids over-bold icons that feel heavy against body text.
+- **Size:** 44×44pt for primary feature rows (matching the minimum tap target); smaller variants (36×36, 40×40) are acceptable in dense contexts such as stat cards and compact layouts.
+
+This system replaces the prior use of `Circle` fills for icon containers. Any view still using a `Circle` fill for an icon badge is a migration target.
+
+### 6.5 Home Screen Layout
 
 The home screen layers ambient brand presence and personal context beneath a clear logging action. From back to front and top to bottom:
 
@@ -286,6 +317,9 @@ The home screen layers ambient brand presence and personal context beneath a cle
 - Left: Greeting and date — e.g. "Good morning. Tuesday, 18 Feb." Set in Plus Jakarta Sans.
 - Right: Streak numeral — when the user has been headache-free for 1 or more days, a large Fraunces Bold numeral (64pt) is displayed showing the count with a caption label ("days free" or "day free" for a count of 1). This is the single editorial use of Fraunces on the home screen outside of the brand watermark. When the streak count is 0, a small teal capsule chip reads "Headache-free today" in place of the numeral. When there is no streak data (active headache or no logs recorded), the right side of the header is empty. **Active headache rule:** While a headache is active (`isActive == true`), the streak numeral and chip are both hidden entirely — the right side of the header is empty. Displaying a stale days-free count during an active headache is factually misleading. The `HomeViewModel` must evaluate `isActive` state before computing streak display. Any code that surfaces `daysSinceLastHeadache` while an active headache exists is incorrect behavior (see D-29).
 
+**Streak card**
+When the user has a headache-free streak, a dedicated streak card appears above the log action card. The card uses the `circle.dotted.and.circle` SF Symbol (brand halo echo) inside a `RoundedRectangle` icon container with `auraePrimary.opacity(0.12)` fill. This symbol replaced `bolt.fill` to maintain visual consistency with the brand mark's concentric ring motif (see Section 18).
+
 **Ambient context triptych card**
 Replaces the former single-row weather card. A 3-column card is shown whenever at least one log exists. The card is always rendered in partial state if data is unavailable for individual columns — it is never hidden entirely due to a single column's data being absent.
 - Column 1 — Weather: SF Symbol weather icon, temperature in degrees, condition label (e.g. "Partly cloudy"). Displays "—" for temperature and condition if weather data is nil (e.g., due to API failure or no location permission at time of logging). The weather icon is omitted when condition is nil.
@@ -296,23 +330,33 @@ Replaces the former single-row weather card. A 3-column card is shown whenever a
 
 Columns are separated by hairline dividers. The card uses `auraeAdaptiveCard` background with a subtle shadow. The full VoiceOver accessibility label combines all three data points into a single descriptive string, substituting "unavailable" for any "--" value.
 
+**Empty states**
+- **Recent Activity empty state:** Ghost `AuraeLogoMark` at 18% opacity centered in the card. Copy: "Your history will appear here as you log."
+- **Quick Insights empty state:** Copy: "Log 5 or more episodes to start seeing your patterns."
+
 **Logging controls**
 - **"How are you feeling?"** section label above the severity selector.
 - **Severity selector** — three rounded pill buttons: Mild, Moderate, Severe. Pills display the word label only — no numeric index. Must be operable one-handed.
-- **Log Headache button** — large hero CTA. `auraeTeal` fill (`#8AC4C1`), dark ink Fraunces label (`auraeSeverityLabelSelected` / `#1C2826`), generous tap target. White text must not be used — it fails WCAG AA on this fill.
+- **Log Headache button** — large hero CTA. `auraeTeal` fill, dark ink label (`auraeSeverityLabelSelected` / `#1C2826`), generous tap target. White text must not be used — it fails WCAG AA on this fill.
 
 **Navigation**
 - Bottom tab bar — Home, History, Insights, Export. Icon + Jakarta label. There is no Profile tab in V1.
+- Tab bar appearance: `configureWithTransparentBackground()` with an explicit `auraeAdaptiveCard` background color. Unselected tab items use `auraeTextSecondary` for both icon and label color.
 
 No carousels. No promotional banners. No notifications surfaced on the home screen. The sole exception to the no-banner rule is the red-flag safety banner (see Section 7.1): when an active headache has red-flag symptoms, a safety banner must appear on the home screen and persist until the headache is resolved. This banner is a patient safety surface — not a notification or promotional element.
 
-### 6.5 Accessibility
+### 6.6 Accessibility
 
 - WCAG 2.1 AA minimum contrast across all text and interactive elements.
 - Dynamic Type and VoiceOver support across all screens.
 - All interactive elements minimum 44×44pt tap targets.
 - No information conveyed by colour alone — always paired with icon or label.
 - Reduce Motion: disable parallax and auto-playing transitions.
+
+**VoiceOver labels (implemented in v1.7):**
+- `RetroStarRating` — per-star accessibility labels: "N out of 5, selected" (selected state) / "N out of 5" (unselected state), with appropriate hints.
+- `RetroIntensityScale` — same per-item pattern as `RetroStarRating`.
+- Medication effectiveness label changed from "Effectiveness" to "How much did it help?" — more natural language for screen reader users and general users alike.
 
 ---
 
@@ -395,6 +439,7 @@ Final banner copy requires legal review before V1 release (OQ-01 — open).
 A static informational screen must be accessible from:
 - The conditional banner on any of the three surfaces (primary entry point)
 - Settings (secondary persistent entry point)
+- Profile > Support section — a dedicated "When to Seek Medical Care" row opens `MedicalEscalationView`
 
 The screen covers: symptoms requiring emergency evaluation (e.g. "thunderclap" headache, first-ever aura, neurological symptoms), when to consult a GP or neurologist, and a clear disclaimer that Aurae is a tracking tool — not a diagnostic tool. Content is sourced from clinical advisor recommendations and reviewed by legal.
 
@@ -464,8 +509,11 @@ Frequency-based language only. Correlation language is prohibited.
 
 #### Insights Disclaimer (Insights Tab)
 - On first visit to Insights: full disclaimer shown prominently; user may dismiss after reading
-- On all subsequent visits: compact footer persists — "Patterns are for informational purposes only — not medical advice."
-- Full disclaimer text: "Patterns are based on your logged data only. For informational purposes only. Not a medical diagnosis. Discuss findings with your healthcare provider."
+- On all subsequent visits: compact footer persists — "For informational purposes only · Not medical advice"
+- Full disclaimer text: "Patterns are based on your logged data only. They are for informational purposes and do not constitute medical advice."
+
+#### Triggers Correlational Disclaimer
+The trigger bar chart in the full Insights view must display a correlational disclaimer below the bars: "These patterns reflect associations in your logged data. They are not confirmed triggers and may change as you log more episodes. Share them with your care team to explore what they mean for you." This is a clinical advisor requirement (implemented at commit `603ffed`).
 
 #### First Insights Educational Interstitial
 - Triggered once when the user's 5th resolved log is reached and they navigate to Insights for the first time
@@ -473,7 +521,29 @@ Frequency-based language only. Correlation language is prohibited.
 - Single CTA: "Got it — show my patterns"
 - Shown once; state persisted in UserDefaults
 
-### 7.5 Headache Type Self-Report Disclaimer
+### 7.5 Onboarding Safety Screen (Screen 5 of 6)
+
+A clinical safety screen is presented to every new user during onboarding, before the permissions screen. This screen is required by the clinical advisor and must not be removed or made skippable.
+
+**Screen title:** "Before you start logging."
+
+**Content:**
+- Opening body copy: "Aurae is designed for recurring headaches you already know about."
+- Four red-flag symptom rows (displayed as `FeatureRow` cards with warning-colored icons):
+  1. A sudden, severe headache unlike any you've had before.
+  2. Headache with fever, stiff neck, confusion, or vision changes.
+  3. A headache following a head injury.
+  4. New weakness, numbness, or difficulty speaking.
+- Seek-care callout (blush background): "If you experience any of these, please seek medical care right away. These symptoms are not what this app is designed to track."
+- Aura clarification (soft-teal background): "Aurae is designed for anyone who experiences recurring headaches, whether or not you experience aura or have a migraine diagnosis."
+
+**Position in onboarding flow:** Screen 5 of 6. Adding this screen shifted the former Screen 5 (permissions) to Screen 6.
+
+**Navigation:** Skip button behavior — "Skip" on screens 2–4 jumps to the Permissions screen (Screen 6), bypassing this Safety screen. This is intentional: users who actively skip onboarding content have demonstrated intent; the safety screen content is still available from Settings via "When to Seek Medical Care." The clinical advisor approved this Skip behavior.
+
+**Page count:** Total onboarding screens is now 6 (was 5 at v1.5). The `pageCount` constant in `OnboardingView.swift` is 6.
+
+### 7.6 Headache Type Self-Report Disclaimer
 
 The headache type selector in the retrospective entry screen must display a non-dismissible inline note below the selector field:
 
@@ -481,9 +551,29 @@ The headache type selector in the retrospective entry screen must display a non-
 
 Rendered as a compact caption (`auraeCaption` style) in `auraeMidGray`. This requirement exists because the headache type taxonomy is user-selected and not clinically validated (see D-14).
 
-### 7.6 Food Trigger Shortcut Accuracy
+### 7.7 Food Trigger Shortcut Accuracy
 
 The `foodTriggerShortcuts` list must not present gluten as a universal trigger. The shortcut must be labeled "Gluten (if sensitive)" to make clear that this trigger is relevant only to users with diagnosed celiac disease or confirmed gluten sensitivity.
+
+### 7.8 Copy Language Guardrails (Clinical Advisor)
+
+The following language rules apply to all user-facing copy throughout the app, including onboarding, Insights, Profile, paywall, and App Store metadata. See Section 18.4 for the full copy standards reference.
+
+**Forbidden words and phrases (never use as causal or factual claims):**
+- triggers (as a causal fact — e.g. "your triggers," "find your triggers")
+- diagnose / diagnosis
+- cure / eliminate / fix / solve / prevent
+- proven / clinically proven
+- "find your triggers"
+
+**Required approved language (use instead):**
+- "may be associated with"
+- "patterns you've noticed"
+- "your data shows"
+- "worth discussing with your care team"
+- "associations you may not have noticed on your own"
+
+These rules were established following clinical advisor review and are encoded in the onboarding copy, Insights locked-state body copy, and App Store description. Any new copy that touches the Insights, onboarding, or paywall must be reviewed against these guardrails before shipping.
 
 ---
 
@@ -515,6 +605,8 @@ Gated features are never hidden. Free users always see locked premium features i
 - **Monthly:** $4.99 / month
 - **Annual:** $34.99 / year (~$2.92/month, 42% saving)
 - **Free trial:** 14 days of Premium, no credit card required
+
+> **QA flag (open):** Confirm "Try free for 14 days — no credit card needed." copy in `InsightsView` locked state matches the active RevenueCat config before App Store submission. If the RevenueCat trial configuration changes, this copy must be updated.
 
 ---
 
@@ -550,15 +642,16 @@ Gated features are never hidden. Free users always see locked premium features i
 
 ### 10.1 First Launch & Onboarding
 
-Onboarding is implemented as a 5-screen `TabView` flow with an animated capsule dot indicator. Screens 2–4 include a Skip button. There is no questionnaire or onboarding survey in V1.
+Onboarding is implemented as a 6-screen `TabView` flow with an animated capsule dot indicator. Screens 2–5 include a Skip button (Skip jumps directly to Screen 6, the permissions screen). There is no questionnaire or onboarding survey in V1.
 
-1. **Welcome** — brand hero, value proposition, "Get Started" CTA.
-2. **Auto-capture** — explains weather and Apple Health auto-capture at onset.
-3. **Pattern insights** — preview of the trigger intelligence layer.
-4. **Privacy & permissions** — explains what data is collected, how it is used, and why each permission is needed.
-5. **Ready** — CTA leading into the main app.
+1. **Welcome** — `AuraeLogoMark(68)` + "aurae" wordmark, headline "Understand your patterns.", subtitle, "Get Started" CTA.
+2. **How it works** — explains weather and Apple Health auto-capture at onset.
+3. **Fill in the rest** — explains the retrospective entry flow.
+4. **Discover your patterns** — premium Insights preview with locked mock card.
+5. **Before you start logging** — safety screen: red-flag symptom rows, seek-care callout, aura clarification. (Clinical advisor requirement — see Section 7.5.)
+6. **A few quick permissions** — explains HealthKit, Location, and Notifications; "Let's go" CTA leads into the main app.
 
-**Permission philosophy:** HealthKit, Location, and Notifications are all requested on the user's first log attempt — never on launch. The Privacy screen (step 4) sets expectations before any system prompt appears. The app is fully functional with all three permissions denied; all health and weather fields degrade gracefully to nil or manual entry.
+**Permission philosophy:** HealthKit, Location, and Notifications are all requested on the user's first log attempt — never on launch. The Permissions screen (step 6) sets expectations before any system prompt appears. The app is fully functional with all three permissions denied; all health and weather fields degrade gracefully to nil or manual entry.
 
 ### 10.2 Logging a Headache (Core Flow)
 
@@ -639,18 +732,26 @@ The following UX design review open questions (OQ-A through OQ-E) and P1 issues 
 - **OQ-E — Red-flag banner dismiss scope:** CLOSED. Per-log, not global. `hasSeenRedFlagBanner` global boolean replaced with per-log tracking. See D-31.
 - **P1#1 — Post-resolve retrospective never prompted:** CLOSED. CTO wired `.sheet(item: $viewModel.logPendingRetrospective)` in HomeView. No PRD update needed.
 - **P1#2 — Red-flag banner only in InsightsView:** CLOSED. Banner now specified for LogConfirmationView (primary), HomeView (persistent), InsightsView (secondary). See D-28 and Section 7.1.
-- **P1#3 — Medication overuse warning undefined:** CLOSED. Full spec in Section 5.3 and Section 7.6. See D-32.
+- **P1#3 — Medication overuse warning undefined:** CLOSED. Full spec in Section 5.3 and Section 7.2. See D-32.
 
 ### Closed at v1.6 (23 Feb 2026)
 
 - **OQ-02 — Severity 5 onset definition:** CLOSED. Clinical advisor reviewed and approved the onset speed selector spec. `onsetSpeed: OnsetSpeed?` added to `HeadacheLog`. Two-tier trigger: primary urgent banner (`onsetSpeed == .instantaneous` AND `severity >= 4`); secondary advisory notice (`onsetSpeed == .instantaneous` AND `severity < 4`). Onset speed question added to primary logging flow after severity selection. See D-33.
+
+### Closed at v1.7 (27 Feb 2026)
+
+- **OQ-04 — Onboarding safety screen content and placement:** CLOSED. Safety screen ("Before you start logging") implemented as Screen 5 of 6 in the onboarding flow. Four red-flag symptom rows, seek-care callout, aura clarification. Clinical advisor approved. Skip button bypasses to Permissions screen (Screen 6). See D-34.
+- **OQ-05 — Onboarding headline copy (clinical advisor sign-off):** CLOSED. Screen 1 headline changed from "Understand your headaches." → "Understand your patterns." Screen 4 (InsightsPage) headline changed from "Discover your triggers." → "Discover your patterns." Both changes approved by clinical advisor. "triggers" as a causal claim removed from all onboarding copy. See D-35.
+- **OQ-06 — Brand mark direction:** CLOSED. Brand mark adopted as three concentric ellipses (`AuraeLogoMark`) in `auraeMarkGradient` (#2D7D7D → #B3A8D9). Wordmark "aurae" in DM Sans SemiBold. `AuraeLogoMark` and `AuraeLogoLockup` components shipped. See D-36.
+- **OQ-07 — Icon container shape system:** CLOSED. All icon containers use `RoundedRectangle`, `opacity(0.12)` fill, `.medium` SF Symbol weight. `Circle` fills are migration targets. See D-37.
+- **OQ-08 — Onboarding typography rule:** CLOSED. DM Serif Display at ≥26pt retained for onboarding headlines. `fraunces()` / `dmSerifDisplay()` at ≥26pt returns `Font.custom("DMSerifDisplay-Regular", ...)`. Below 26pt uses system font. See D-38.
 
 ### Remaining Open Questions
 
 - **Step 16 (Premium PDF):** Which additional charts and contextual sections should be included in the full clinical export? Format and section order to be confirmed before build begins. Owner: PM. Target: before Step 16 build begins.
 - **Step 17 (Settings):** What is the full settings surface? Confirmed items: notification delay preference, "When to Seek Medical Care" screen accessible from Settings. Pending: data deletion flow, unit preferences (°C/°F), and any account-adjacent actions. Owner: PM. Target: before Step 17 build begins.
 - **OQ-01 — Red-flag banner copy (legal review):** Clinical advisor copy for the conditional safety banner and "When to Seek Medical Care" screen (including the new frequent medication use subsection and the two-tier onset-speed banner copy added at v1.6) must be reviewed and approved by legal counsel before V1 release. Owner: PM. Target: before Step 16 build completion.
-- **OQ-03 — Preventive medication name list:** Engineering requires a seed list of known preventive medication names to apply the conservative nil-classification fallback in the medication overuse count (Section 7.6). Who owns this list? Suggested approach: PM compiles an initial list from clinical advisor input; list is hardcoded in V1 and editable in a future release. Owner: PM + Clinical Advisor. Target: before red-flag banner and medication overuse warning implementation begins.
+- **OQ-03 — Preventive medication name list:** Engineering requires a seed list of known preventive medication names to apply the conservative nil-classification fallback in the medication overuse count (Section 7.2). Who owns this list? Suggested approach: PM compiles an initial list from clinical advisor input; list is hardcoded in V1 and editable in a future release. Owner: PM + Clinical Advisor. Target: before red-flag banner and medication overuse warning implementation begins.
 
 ---
 
@@ -674,7 +775,7 @@ Decisions made during development that closed previously open questions or estab
 | D-12 | **CTA button label: dark ink (`#1C2826`) on Aurae Teal fill. White text is prohibited on this surface.** | White text on `#8AC4C1` achieves only 1.95:1 contrast — fails WCAG AA. Dark ink (`auraeSeverityLabelSelected`) achieves ≥10:1 (AAA). This is a non-negotiable accessibility constraint, not a stylistic preference. Applies to all primary CTA buttons and any label placed on a teal fill. | Feb 2026 |
 | D-13 | **V1 tab bar: Home, History, Insights, Export. No Profile tab.** PDF export is a top-level tab. A Settings screen is planned for Step 17 but will not be surfaced as a tab — likely accessed via a navigation bar icon. | Export is a primary user goal (doctor visits, healthcare communication). Elevating it to a tab reduces friction. Profile is not yet a meaningful screen without account infrastructure. Settings as a tab would be disproportionate to the settings surface area in V1. | Feb 2026 |
 | D-14 | **Headache type taxonomy (tension / migraine / cluster / sinus) deferred to V2.** V1 captures headache type as a free-form location/type field in `RetrospectiveEntry`. | A structured taxonomy requires clinical validation and localisation. Free-form capture preserves the data without constraining users prematurely. Taxonomy can be layered on in V2 using existing free-text data as training signal. | Feb 2026 |
-| D-15 | **PDF export: Aurae-branded format.** A4 portrait with teal accent bar, Fraunces title, and "Generated by Aurae" footer. Professional in tone but clearly Aurae-owned. | A branded export reinforces product identity at the clinic — a high-trust moment with healthcare providers. Neutral clinical styling was considered but rejected as a missed brand-building opportunity. The format reads as professional while still being distinctive. | Feb 2026 |
+| D-15 | **PDF export: Aurae-branded format.** A4 portrait with teal accent bar and "Generated by Aurae" footer. Professional in tone but clearly Aurae-owned. | A branded export reinforces product identity at the clinic — a high-trust moment with healthcare providers. Neutral clinical styling was considered but rejected as a missed brand-building opportunity. The format reads as professional while still being distinctive. | Feb 2026 |
 | D-16 | **Severity selector reduced from 5 levels to 3: Mild (rawValue 1), Moderate (rawValue 3), Severe (rawValue 5).** Pills display word labels only — no numeric index. Raw values 1, 3, 5 are preserved in the data model. | Reduces cognitive load at the moment of pain. Aligns with common clinical severity scales (mild / moderate / severe). Simplifies the UI without losing meaningful clinical gradation. Raw values 1, 3, 5 preserve spread across the existing 5-point color scale and maintain backwards compatibility with any stored logs. | Feb 2026 |
 | D-17 | **Home screen ambient enrichment: four elements added** — radial gradient background wash, brand watermark, Fraunces streak numeral in header, and ambient context triptych card. | The prior home screen was visually sparse between the header and the CTA. These additions provide personal context (streak numeral, triptych card), brand presence (watermark, gradient wash), and emotional connection without adding logging friction or visual noise. All four elements are non-interactive or passive; none compete with the primary Log Headache action. Agreed following design director and UI designer review. | Feb 2026 |
 | D-18 | **Red-flag symptom escalation pathway: accepted for V1.** Conditional safety banner on high-risk symptom combinations + static "When to Seek Medical Care" screen accessible from banner and Settings. | Patient safety requirement. The combination of aura + visual disturbance or sudden severe-onset headache warrants a clear escalation path in a medical-adjacent app. Low complexity, high liability consequence if omitted. Clinical advisor copy to be used verbatim pending legal review (see OQ-01). | 22 Feb 2026 |
@@ -688,17 +789,29 @@ Decisions made during development that closed previously open questions or estab
 | D-26 | **Medication timing field (`medicationTimingMinutes`): deferred to V1.1.** | Time-to-first-dose is clinically meaningful, particularly for triptans. However, it requires a new `RetrospectiveEntry` field, a time picker in the Medication section, and `InsightsService` analysis logic. Deferred alongside prodrome/postdrome (D-23) for a single retrospective enrichment release in V1.1. | 22 Feb 2026 |
 | D-27 | **First Insights educational interstitial: accepted for V1.** Shown once when the user's 5th resolved log is reached and they navigate to Insights for the first time. | Replaces the prior "First Insight after 3 entries" note in the Risks table. The interstitial is better calibrated (aligns with the existing 5-log threshold), sets accurate expectations about correlation vs. causation, and directly reduces liability by prompting users to discuss patterns with their clinician. State persisted in UserDefaults. | 22 Feb 2026 |
 | D-28 | **Red-flag banner must appear on all three surfaces: LogConfirmationView (primary), HomeView (persistent while headache is active), InsightsView (secondary).** Closes OQ-A and P1#2. | A banner surfaced only in InsightsView (a premium-gated tab) fails to reach users who log and close the app. LogConfirmationView provides guaranteed exposure at the highest-certainty moment. HomeView persistence ensures the prompt remains visible throughout the episode. InsightsView retention is a low-cost secondary catch. All three are required. Section 7.1 updated with full placement spec. | 23 Feb 2026 |
-| D-29 | **Streak chip hidden entirely during active headache.** HomeViewModel must not surface `daysSinceLastHeadache` while `isActive == true`. Right side of header is empty. Closes OQ-C. | A frozen or dimmed stale streak count displayed during an active headache is factually misleading. The existing PRD spec (Section 6.4) already stated the header right side is empty during an active headache — this decision closes the implementation gap between the spec and the HomeViewModel behavior. | 23 Feb 2026 |
+| D-29 | **Streak chip hidden entirely during active headache.** HomeViewModel must not surface `daysSinceLastHeadache` while `isActive == true`. Right side of header is empty. Closes OQ-C. | A frozen or dimmed stale streak count displayed during an active headache is factually misleading. The existing PRD spec (Section 6.5) already stated the header right side is empty during an active headache — this decision closes the implementation gap between the spec and the HomeViewModel behavior. | 23 Feb 2026 |
 | D-30 | **Ambient context triptych card shows partial state with "--" for nil weather values. Card is never hidden due to a single column's data being absent.** Closes OQ-D. | Hiding the card entirely when weather data is nil would suppress sleep and days-free data that may have loaded successfully from HealthKit. The "--" convention is already established for sleep and days-free columns. Consistent partial-state rendering is preferable to a card that appears and disappears based on a single data failure. Weather icon is omitted when condition is nil. | 23 Feb 2026 |
 | D-31 | **Red-flag banner dismiss state is tracked per log, not as a global boolean.** The current `hasSeenRedFlagBanner` global `@AppStorage` boolean is incorrect and must be replaced with per-log tracking (e.g., `hasAcknowledgedRedFlag: Bool` on `HeadacheLog`, or keyed by log ID). Closes OQ-E. | A global dismiss means a user who has new red-flag symptoms in a future episode will never see the escalation prompt again — a direct patient safety regression. The banner is contextual to a specific symptom combination in a specific log and must reset for each new triggering log. | 23 Feb 2026 |
 | D-32 | **Medication overuse awareness warning: acute medications only, 10-day threshold, ungated, inline Insights card.** `medicationIsAcute: Bool?` added to `RetrospectiveEntry`. Classification toggle ("For headache relief" / "Daily as prescribed") added to Medication section. Clinical advisor copy used verbatim. Warning links to "When to Seek Medical Care" screen, which receives a new informational subsection on frequent medication use. Closes OQ-B and P1#3. | Preventive medications must be excluded from the overuse count — a daily topiramate user would receive a false warning every month, a patient safety issue. The clinical advisor confirmed 10 days/month is a defensible threshold for a conservative awareness prompt. The 3-month ICHD-3 duration component is absent in V1 (known limitation, documented). Warning is ungated: a free-tier user at clinical risk of medication overuse must receive the awareness prompt. Risk assessment: Low if acute/preventive distinction is correctly enforced and copy reflects pattern awareness, not diagnosis. | 23 Feb 2026 |
 | D-33 | **Onset speed selector added to primary log flow. `onsetSpeed: OnsetSpeed?` field added to `HeadacheLog`. Two-tier red-flag trigger based on onset speed.** Option A (time-to-peak selector) selected over retrospective detection. Clinically approved `OnsetSpeed` enum: `.gradual` / `.moderate` / `.instantaneous`. "Not sure" maps to `nil` (no trigger). Trigger tiers: primary urgent banner (`onsetSpeed == .instantaneous` AND `severity >= 4`) fires on `LogConfirmationView` and persists on `HomeView`; secondary advisory notice (`onsetSpeed == .instantaneous` AND `severity < 4`) fires on `LogConfirmationView` only. Both surfaces link to `MedicalEscalationView` via "Learn more". The word "thunderclap" must not appear in any user-facing copy. Severity alone is not a sufficient trigger — onset speed is the primary clinical signal. Closes OQ-02. | Retrospective detection was rejected because it cannot activate the safety banner at log time — the primary requirement. An in-flow selector captures the signal while it is most accurate and enables the safety function to fire in `LogConfirmationView` at the highest-certainty exposure point. "Not sure" is required for users who were asleep at onset; without it, users would feel forced to guess, degrading data quality and potentially causing false positives. The `.instantaneous` case maps precisely to the ICHD-3 1-minute threshold, giving the trigger clinical defensibility. The two-tier design avoids over-alarming lower-severity users while still providing an advisory notice for any sudden-onset headache regardless of severity. All copy is clinically approved; legal review required before V1 release (OQ-01). | 23 Feb 2026 |
+| D-34 | **Onboarding safety screen added as Screen 5 of 6.** "Before you start logging" — four red-flag symptom rows, seek-care callout, aura clarification. Former Screen 5 (permissions) shifted to Screen 6. `pageCount` updated to 6 in `OnboardingView.swift`. Skip behavior on screens 2–4 jumps to Screen 6 (permissions), not Screen 5. Clinical advisor requirement. Closes OQ-04. | Every new user should encounter a one-time, lightweight safety orientation before logging begins. The onboarding context is the highest-attention moment in the user journey and the most appropriate point to set expectations about which symptoms are outside the app's intended use. A dedicated screen avoids burying this information in fine print. The Skip behavior was retained for the 2–4 range to avoid forcing safety content on users who actively opt out of onboarding; the content remains accessible from Settings. | 27 Feb 2026 |
+| D-35 | **Onboarding headline copy updated per clinical advisor sign-off. Screen 1: "Understand your patterns." Screen 4: "Discover your patterns."** "triggers" removed from both headlines. Closes OQ-05. | "Find your triggers" and "Discover your triggers" imply a causal relationship that the co-occurrence algorithm cannot establish. "Patterns" is accurate, honest, and still compelling. This change aligns onboarding copy with the product's technical approach and the broader copy language guardrails (Section 7.8, Section 18.4). | 27 Feb 2026 |
+| D-36 | **Brand mark direction adopted: `AuraeLogoMark` (three concentric ellipses, `auraeMarkGradient` #2D7D7D → #B3A8D9) + `AuraeLogoLockup` (mark + "aurae" wordmark in DM Sans SemiBold).** `auraeMarkGradient` token added to `Colors.swift`. Components shipped in `DesignSystem/Components/AuraeLogoMark.swift`. Applied across: WelcomePage (68pt mark), Insights locked state (52pt, 70% opacity + lock icon overlay), Home empty states (ghost mark, 18% opacity), Profile footer (24pt, 2-ring lockup + brand statement). Closes OQ-06. | The three concentric ellipses evoke the "aura" concept — the defining perceptual experience of the migraine patient persona — without any literal medical illustration. The teal-to-violet gradient (`auraeMarkGradient`) uses the original brand palette, distinct from the functional UI blue (`auraePrimary`). The separation between brand gradient (warm teal/violet) and functional gradient (blue) is intentional and must be maintained. | 27 Feb 2026 |
+| D-37 | **Icon container system: all icon badges use `RoundedRectangle`, `opacity(0.12)` fill, `.medium` SF Symbol weight.** `Circle` fills replaced throughout onboarding feature rows, Insights stat cards, and onboarding locked state. Closes OQ-07. | The `RoundedRectangle` container with a 12pt radius reads as modern, neutral, and slightly more grounded than a circle — appropriate for a health utility. The 0.12 opacity ensures the container echoes the icon's semantic color without dominating the surrounding text. Consistency across all icon badge contexts reduces visual noise and strengthens the system feel. | 27 Feb 2026 |
+| D-38 | **DM Serif Display restored for onboarding headlines at ≥26pt.** `fraunces()` / `dmSerifDisplay()` at ≥26pt returns `Font.custom("DMSerifDisplay-Regular", ...)`. Below 26pt falls back to system font (safety against thin-stroke collapse on dark surfaces). Closes OQ-08. | The Design Director's preferred option (Option A) was restoration of DM Serif Display for onboarding headlines to preserve editorial warmth at the brand's highest-attention entry point. The ≥26pt rule ensures the typeface is only used where stroke contrast is legible. Below 26pt, DM Sans (via system font aliases) handles all UI text. This rule is enforced in `Typography.swift` and must not be overridden without Design Director sign-off. | 27 Feb 2026 |
+| D-39 | **Medication section: clinical safety disclaimer added.** Non-removable caption displayed in `MedicationSection.swift` below the effectiveness field: "Medication records are for your reference and to support conversations with your care team. Do not adjust or stop any medication based on patterns observed in this app." | Clinical advisor requirement. The disclaimer prevents any interpretation of medication effectiveness data as a recommendation to alter a prescribed regimen. Implementation cost: negligible (single `Text` view). Safety value: high — directly addresses a category of potential harm unique to medication-tracking features in health apps. | 27 Feb 2026 |
+| D-40 | **Insights triggers correlational disclaimer added.** Plain-text disclaimer displayed below the trigger bar chart in `InsightsView.swift` full state: "These patterns reflect associations in your logged data. They are not confirmed triggers and may change as you log more episodes. Share them with your care team to explore what they mean for you." | Clinical advisor requirement. The trigger bar chart is the highest-risk Insights surface — it most closely resembles a diagnostic claim ("you are triggered by X"). The disclaimer reframes it as associative data, not causal fact, and prompts care team discussion. | 27 Feb 2026 |
+| D-41 | **Insights full state: episode count trust signal added.** "Based on your N logged episodes" caption displayed at the top of the full Insights scroll view. | Grounds the pattern analysis in its actual data source. Users who have few logs should understand that patterns derived from 6 episodes are less reliable than patterns derived from 60. The caption sets accurate expectations without hiding the feature or requiring a minimum to show it. | 27 Feb 2026 |
+| D-42 | **Streak card icon changed from `bolt.fill` → `circle.dotted.and.circle`.** Brand halo echo — the concentric ring pattern echoes the `AuraeLogoMark` motif. Applied to `HomeView.swift` streak card icon container. | Visual coherence between the brand mark and a key motivational UI element. The `circle.dotted.and.circle` symbol in SF Symbols most closely approximates the concentric ring visual vocabulary established by the brand mark. `bolt.fill` had no connection to the Aurae visual system. | 27 Feb 2026 |
+| D-43 | **Tab bar: `configureWithTransparentBackground()` + explicit `auraeAdaptiveCard` background; unselected items use `auraeTextSecondary`.** Applied in `ContentView.swift` `init()`. | The transparent tab bar background caused the tab bar to appear to float over content without a clear surface on dark mode. The explicit card surface creates a grounded separation between content and navigation. `auraeTextSecondary` for unselected items provides a clear selected/unselected distinction that meets WCAG contrast requirements. | 27 Feb 2026 |
+| D-44 | **VoiceOver accessibility improvements shipped across retrospective components.** `RetroStarRating`: per-star labels "N out of 5, selected" / "N out of 5" with hints. `RetroIntensityScale`: same pattern. Medication effectiveness label: "Effectiveness" → "How much did it help?". | Screen reader users navigating star ratings need both the numeric value and the selection state. The previous implementation provided neither. "How much did it help?" is more conversational and natural for VoiceOver reading than "Effectiveness" — it also benefits sighted users reading the label. | 27 Feb 2026 |
+| D-45 | **`RetroIntensityScale` extracted as a reusable standalone component from `LifestyleSection`.** Display name input fix applied. Star rating unselected color fix applied. | Reusability: `RetroIntensityScale` now serves both stress level (LifestyleSection) and any future intensity-scale contexts without copy-paste. The display name input fix resolved a SwiftUI `TextField` focus state bug. The unselected star color fix corrected a regression where unselected stars rendered in the teal accent color instead of `auraeAdaptiveSecondary`. | 27 Feb 2026 |
 
 ---
 
 ## 15. Build Status
 
-Steps are as defined in `CLAUDE.md`. Status as of 22 Feb 2026.
+Steps are as defined in `CLAUDE.md`. Status as of 27 Feb 2026.
 
 | Step | Description | Status |
 |---|---|---|
@@ -727,7 +840,7 @@ Steps 16 and 17 remain before public release evaluation. The following V1 clinic
 The following additional implementation items were added at v1.5 (23 Feb 2026) and must also be completed before release:
 - **Red-flag banner placement correction (D-28):** Banner must appear on LogConfirmationView and HomeView (persistent while active) in addition to InsightsView. Requires updates to `LogConfirmationView.swift`, `HomeView.swift`, and `HomeViewModel.swift`.
 - **Per-log red-flag dismiss state (D-31):** Replace `hasSeenRedFlagBanner` global `@AppStorage` boolean with per-log tracking. Requires a model change on `HeadacheLog` or a UserDefaults key-per-log-ID implementation.
-- **Streak chip hidden during active headache (D-29):** `HomeViewModel` must gate streak display on `isActive == false`. Bug fix — spec was already correct in PRD Section 6.4.
+- **Streak chip hidden during active headache (D-29):** `HomeViewModel` must gate streak display on `isActive == false`. Bug fix — spec was already correct in PRD Section 6.5.
 - **Triptych card partial state for nil weather (D-30):** Confirm `HomeView` renders "--" for nil weather columns rather than hiding the card. Likely a minor view adjustment.
 - **`medicationIsAcute: Bool?` field on `RetrospectiveEntry` (D-32):** New SwiftData field required. Classification toggle UI required in `MedicationSection.swift`.
 - **Medication overuse warning card in InsightsView (D-32):** New ungated inline card in `InsightsView.swift`. Logic in `InsightsService.swift` or `InsightsViewModel.swift` to compute acute-day count for current month.
@@ -738,6 +851,26 @@ The following additional implementation items were added at v1.6 (23 Feb 2026) a
 - **Onset speed question UI in log flow (D-33):** New screen or step added to the log flow in `LogViewModel.swift` and the corresponding view, appearing after severity selection and before log confirmation. Four answer options rendered as tappable choices. "Not sure" maps to `nil`. The question must appear in the primary flow — not in an optional "more details" section.
 - **Two-tier red-flag trigger logic (D-33):** Update red-flag evaluation logic (in `LogViewModel.swift` or wherever trigger conditions are evaluated) to replace the prior vague "Severity 5 with sudden onset" condition with: (a) primary urgent banner when `onsetSpeed == .instantaneous && severity >= 4`; (b) secondary advisory notice when `onsetSpeed == .instantaneous && severity < 4`. The aura + visual disturbance trigger is unaffected.
 - **Two-tier banner copy in `LogConfirmationView.swift` and `HomeView.swift` (D-33):** Implement primary urgent banner using clinically approved copy (see Section 7.1). Implement secondary advisory notice using clinically approved copy (see Section 7.1). Both must include a "Learn more" action opening `MedicalEscalationView`. Primary banner persists on `HomeView` while headache is active; secondary notice appears in `LogConfirmationView` only and does not persist.
+
+The following items shipped at v1.7 (27 Feb 2026) — confirmed complete:
+- **Brand mark system (D-36):** `AuraeLogoMark.swift` and `AuraeLogoLockup` components shipped. Applied to WelcomePage, Insights locked state, Home empty states, Profile footer.
+- **`auraeMarkGradient` token (D-36):** Added to `Colors.swift`.
+- **Onboarding headline copy updates (D-35):** "Understand your patterns." (Screen 1), "Discover your patterns." (Screen 4).
+- **Onboarding safety screen (D-34):** Screen 5 of 6 implemented in `OnboardingView.swift`. `pageCount` updated to 6.
+- **Medication section clinical disclaimer (D-39):** Added to `MedicationSection.swift`.
+- **Insights triggers correlational disclaimer (D-40):** Added to `InsightsView.swift` triggers card.
+- **Insights episode count trust signal (D-41):** "Based on your N logged episodes" caption added to full Insights scroll view.
+- **Streak card icon updated (D-42):** `bolt.fill` → `circle.dotted.and.circle` in `HomeView.swift`.
+- **Icon container system (D-37):** `RoundedRectangle` containers with `opacity(0.12)` fill applied across onboarding feature rows, stat cards, and onboarding locked state.
+- **Tab bar appearance (D-43):** `configureWithTransparentBackground()` + explicit card-surface background + `auraeTextSecondary` unselected items in `ContentView.swift`.
+- **VoiceOver accessibility improvements (D-44):** `RetroStarRating`, `RetroIntensityScale` per-item labels. Medication effectiveness label updated.
+- **`RetroIntensityScale` component extraction (D-45):** Extracted from `LifestyleSection`. Display name input fix. Unselected star color fix.
+- **DM Serif Display restored for onboarding headlines (D-38):** `Typography.swift` updated. `fraunces()` / `dmSerifDisplay()` at ≥26pt returns `Font.custom("DMSerifDisplay-Regular", ...)`.
+- **Profile footer:** Version string replaced with `AuraeLogoLockup` + brand statement "Your patterns, privately yours." + subtle v1.0.0 in `ContentView.swift`.
+- **Onboarding WelcomePage subtitle:** Clinical claim removed. Subtitle updated to "Track what happens before, during, and after each headache — and find patterns that may be unique to you."
+- **Insights locked state body copy:** "triggers" as stated fact removed → "associations you may not have noticed on your own."
+- **Home empty state copy updates:** Recent Activity → "Your history will appear here as you log." Quick Insights → "Log 5 or more episodes to start seeing your patterns."
+- **When to Seek Medical Care — Profile entry point:** "When to Seek Medical Care" row added to Profile > Support section, opening `MedicalEscalationView`.
 
 ---
 
@@ -781,6 +914,109 @@ Aurae
 ### Privacy Nutrition Label (required)
 - Data Not Collected (all data is on-device, no analytics, no crash reporting in production)
 - Confirm with engineering before submission that no third-party SDKs collect identifiers
+
+---
+
+## 18. Brand Identity
+
+*Established at v1.7 (27 Feb 2026) following brand designer + design director sessions.*
+
+### 18.1 Brand Mark — AuraeLogoMark
+
+The Aurae brand mark is a set of three concentric ellipses rendered in the brand mark gradient, evoking an aura halo. It is implemented as `AuraeLogoMark` in `/Aurae/DesignSystem/Components/AuraeLogoMark.swift`.
+
+**Visual anatomy:**
+- Three concentric ellipses (rings) centered on a common origin
+- Outer ring: full `markSize` frame, `auraeMarkGradient` fill, 14% opacity
+- Middle ring: 71% of `markSize`, `auraeMarkGradient` fill, 35% opacity
+- Inner ellipse: 41% of `markSize`, `auraeMarkGradient` fill, 100% opacity
+- The layered opacity creates a natural radial luminosity — lightest at the perimeter, most vivid at the center
+
+**Gradient:** `auraeMarkGradient` — `#2D7D7D` (original brand teal) → `#B3A8D9` (violet), top-leading to bottom-trailing. This gradient is **distinct from `auraePrimaryGradient`** (the functional blue gradient) and must not be substituted.
+
+**Ring count:** At sizes below 40pt, use `ringCount: 2` to drop the faint outer ring, which becomes visually indistinct at small sizes.
+
+**Component API:**
+```swift
+AuraeLogoMark(markSize: 68)                   // Full mark, 3 rings
+AuraeLogoMark(markSize: 52, opacity: 0.70)    // Locked/dimmed state
+AuraeLogoMark(markSize: 32, ringCount: 2)     // Small contexts
+AuraeLogoMark(markSize: 32, opacity: 0.18)    // Ghost watermark
+```
+
+**Accessibility:** `AuraeLogoMark` is always `accessibilityHidden(true)` — it is purely decorative. When used in a lockup, the surrounding `AuraeLogoLockup` provides the "Aurae" accessibility label.
+
+### 18.2 Wordmark & Lockup — AuraeLogoLockup
+
+The Aurae wordmark is the text "aurae" — intentionally all lowercase. This casing choice is deliberate brand voice: lowercase signals calm, approachable confidence, not a typographic error. It is rendered in DM Sans SemiBold.
+
+**`AuraeLogoLockup`** is a horizontal lockup combining the brand mark and wordmark:
+- `AuraeLogoMark` on the left
+- "aurae" text in `Font.system(size: wordmarkSize, weight: .semibold)` on the right
+- 8pt default horizontal gap between mark and wordmark
+- VoiceOver accessibility: the entire lockup reads as "Aurae" via `.accessibilityLabel("Aurae")` on the combined element
+
+**Do not use uppercase "AURAE" in the wordmark.** All-caps is reserved for acronym contexts only. The canonical form is always "aurae" (all lowercase).
+
+**Standard usage sizes:**
+| Context | Mark size | Wordmark size | Ring count |
+|---|---|---|---|
+| Onboarding welcome hero | 68pt | 26pt | 3 |
+| Profile / settings footer | 24pt | 13pt | 2 |
+| PDF export header | 40pt | 17pt | 2 |
+
+### 18.3 Icon Container System
+
+All icon badge containers in the app use a consistent visual system. This is enforced throughout `OnboardingView.swift`, `HomeView.swift`, `InsightsView.swift`, and all retrospective section views.
+
+**Rules:**
+- **Shape:** `RoundedRectangle(cornerRadius: 12, style: .continuous)` — never `Circle`
+- **Fill:** Icon's semantic color at `opacity(0.12)` — creates a subtle tinted surface
+- **Symbol weight:** `.medium` for all SF Symbols inside containers
+- **Standard sizes:** 44×44pt (primary rows, minimum tap target); 36×36pt (compact contexts); 40×40pt (mid-density)
+- **Accessibility:** Icon badge containers are always `accessibilityHidden(true)` — the surrounding text carries semantic meaning
+
+Any `Circle` fill remaining in the codebase for icon badge purposes is a migration target and should be updated to `RoundedRectangle` in the next design pass.
+
+### 18.4 Copy Language Guardrails
+
+These rules apply to all user-facing copy. Any new onboarding, Insights, paywall, or marketing copy must be reviewed against this list before shipping.
+
+**Forbidden words and phrases** (as causal or definitive claims):
+
+| Forbidden | Why | Approved alternative |
+|---|---|---|
+| "your triggers" / "find your triggers" | Implies causal relationship the algorithm cannot establish | "your patterns" / "patterns in your data" |
+| "triggers" as a noun claim (e.g. "coffee is a trigger") | Same as above | "coffee frequently precedes your headaches" |
+| "diagnose" | Regulatory and liability risk | "track," "log," "understand" |
+| "cure" / "eliminate" / "fix" / "solve" | Outcome claim | "manage," "support," "understand" |
+| "prevent" | Clinical claim | "track," "notice patterns" |
+| "proven" / "clinically proven" | Requires RCT evidence | (no substitute — reframe the value prop) |
+| "AI-powered" | Technically inaccurate — Aurae uses co-occurrence algorithms | "on-device pattern analysis" |
+
+**Approved language patterns:**
+- "may be associated with" — for pattern findings
+- "patterns you've noticed" — for user-framed insights
+- "your data shows" — for factual data display
+- "worth discussing with your care team" — for clinical suggestions
+- "associations you may not have noticed on your own" — for locked Insights value prop
+
+**Onboarding copy compliance (v1.7):**
+- Screen 1 headline: "Understand your patterns." (not "Understand your headaches." — the latter was clinically neutral but the new version is stronger)
+- Screen 1 subtitle: "Track what happens before, during, and after each headache — and find patterns that may be unique to you."
+- Screen 4 headline: "Discover your patterns." (not "Discover your triggers.")
+- Insights locked state: "associations you may not have noticed on your own" (not "triggers")
+
+### 18.5 Brand Gradient vs. Functional Gradient
+
+Aurae maintains two distinct gradient tokens with separate semantic roles. Mixing them is a brand integrity violation.
+
+| Token | Colors | Role | Where used |
+|---|---|---|---|
+| `auraeMarkGradient` | `#2D7D7D` → `#B3A8D9` | Brand identity | `AuraeLogoMark`, deliberate brand moments |
+| `auraePrimaryGradient` | `#8AC4C1` → `#B6A6CA` | Premium/upgrade UI | Paywall hero, premium badge, upgrade CTA |
+
+The brand mark gradient uses the original Aurae teal (#2D7D7D) — a deeper, more saturated teal than the functional UI teal. The intentional distinction between these gradients should be preserved across all design iterations.
 
 ---
 
