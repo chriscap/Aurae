@@ -39,7 +39,20 @@ struct LifestyleSection: View {
             RetroStarRating(label: "Sleep quality", rating: $sleepQuality)
 
             // Stress level pills
-            stressLevelPicker
+            RetroIntensityScale(
+                label: "Stress level",
+                rating: $stressLevel,
+                levelLabel: { level in
+                    switch level {
+                    case 1: return "Very low"
+                    case 2: return "Low"
+                    case 3: return "Moderate"
+                    case 4: return "High"
+                    case 5: return "Extreme"
+                    default: return ""
+                    }
+                }
+            )
 
             // Screen time stepper
             RetroStepperDouble(
@@ -110,57 +123,6 @@ struct LifestyleSection: View {
     }
 
     // -------------------------------------------------------------------------
-    // MARK: Stress level picker
-    // -------------------------------------------------------------------------
-
-    private var stressLevelPicker: some View {
-        VStack(alignment: .leading, spacing: Layout.itemSpacing) {
-            HStack {
-                Text("Stress level")
-                    .font(.auraeLabel)
-                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                Spacer()
-                if stressLevel > 0 {
-                    Text(stressLabel(stressLevel))
-                        .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
-                }
-            }
-
-            HStack(spacing: 8) {
-                ForEach(1...5, id: \.self) { level in
-                    Button {
-                        if stressLevel == level {
-                            stressLevel = 0 // deselect
-                        } else {
-                            stressLevel = level
-                        }
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    } label: {
-                        Text("\(level)")
-                            .font(.auraeLabel)
-                            .foregroundStyle(stressLevel == level ? Color.auraeTealAccessible : Color.auraeAdaptivePrimaryText)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: Layout.severityPillHeight)
-                            .background(
-                                stressLevel == level
-                                    ? Color.auraeAdaptiveSoftTeal
-                                    : Color.auraeAdaptiveSecondary
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: Layout.severityPillRadius, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Stress level \(level)")
-                    .accessibilityAddTraits(stressLevel == level ? [.isSelected] : [])
-                }
-            }
-        }
-        .padding(Layout.cardPadding)
-        .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
-    }
-
-    // -------------------------------------------------------------------------
     // MARK: Helpers
     // -------------------------------------------------------------------------
 
@@ -170,16 +132,6 @@ struct LifestyleSection: View {
         return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 
-    private func stressLabel(_ level: Int) -> String {
-        switch level {
-        case 1: return "Very low"
-        case 2: return "Low"
-        case 3: return "Moderate"
-        case 4: return "High"
-        case 5: return "Extreme"
-        default: return ""
-        }
-    }
 }
 
 // MARK: - Preview

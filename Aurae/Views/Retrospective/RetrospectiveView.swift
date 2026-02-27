@@ -543,7 +543,7 @@ struct RetroStarRating: View {
                     } label: {
                         Image(systemName: star <= rating ? "star.fill" : "star")
                             .font(.system(size: 26))
-                            .foregroundStyle(star <= rating ? Color.auraePrimary : Color.auraeAdaptiveSecondary)
+                            .foregroundStyle(star <= rating ? Color.auraePrimary : Color.auraeMidGray)
                             .frame(minWidth: Layout.minTapTarget, minHeight: Layout.minTapTarget)
                     }
                     .buttonStyle(.plain)
@@ -559,6 +559,64 @@ struct RetroStarRating: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
         .accessibilityValue(rating == 0 ? "Not set" : "\(rating) out of 5")
+    }
+}
+
+// MARK: RetroIntensityScale
+
+/// A 1–5 numbered pill row for intensity ratings where star iconography
+/// carries the wrong semantic connotation (e.g. stress level).
+/// Tapping the selected value deselects it (resets to 0).
+struct RetroIntensityScale: View {
+    let label: String
+    @Binding var rating: Int
+    /// Optional closure mapping a level (1–5) to a descriptive string shown in the header.
+    var levelLabel: ((Int) -> String)?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(label)
+                    .font(.auraeLabel)
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
+                Spacer()
+                if rating > 0, let levelLabel {
+                    Text(levelLabel(rating))
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeMidGray)
+                }
+            }
+
+            HStack(spacing: 8) {
+                ForEach(1...5, id: \.self) { level in
+                    Button {
+                        rating = (rating == level) ? 0 : level
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    } label: {
+                        Text("\(level)")
+                            .font(.auraeLabel)
+                            .foregroundStyle(rating == level ? Color.auraeTealAccessible : Color.auraeAdaptivePrimaryText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: Layout.severityPillHeight)
+                            .background(
+                                rating == level
+                                    ? Color.auraeAdaptiveSoftTeal
+                                    : Color.auraeAdaptiveSecondary
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: Layout.severityPillRadius, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("\(label): \(level)")
+                    .accessibilityAddTraits(rating == level ? [.isSelected] : [])
+                }
+            }
+        }
+        .padding(Layout.cardPadding)
+        .background(Color.auraeAdaptiveSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(label)
+        .accessibilityValue(rating == 0 ? "Not set" : (levelLabel?(rating) ?? "\(rating) out of 5"))
     }
 }
 

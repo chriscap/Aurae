@@ -83,6 +83,8 @@ struct ProfileView: View {
     private var logs: [HeadacheLog]
 
     @State private var showExport = false
+    @State private var showNameEdit = false
+    @State private var nameEditText = ""
 
     private var totalLogs: Int { logs.count }
 
@@ -118,6 +120,14 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showExport) {
             ExportView()
+        }
+        .alert("Display Name", isPresented: $showNameEdit) {
+            TextField("Your name", text: $nameEditText)
+                .autocorrectionDisabled()
+            Button("Save") { displayName = nameEditText.trimmingCharacters(in: .whitespaces) }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This name appears in your profile header.")
         }
     }
 
@@ -176,7 +186,13 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
             sectionHeader("ACCOUNT")
             VStack(spacing: 0) {
-                settingsRow(icon: "person.circle", title: "Display Name", detail: displayName.isEmpty ? "Set name" : displayName)
+                Button {
+                    nameEditText = displayName
+                    showNameEdit = true
+                } label: {
+                    settingsRow(icon: "person.circle", title: "Display Name", detail: displayName.isEmpty ? "Set name" : displayName)
+                }
+                .buttonStyle(.plain)
                 Divider().padding(.leading, 52)
                 Toggle(isOn: $notificationsEnabled) {
                     settingsRowLabel(icon: "bell", title: "Notifications")
