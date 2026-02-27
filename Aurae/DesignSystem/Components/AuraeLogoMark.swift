@@ -100,7 +100,7 @@ struct AuraeLogoLockup: View {
 #Preview("Lockup sizes") {
     VStack(alignment: .leading, spacing: 20) {
         AuraeLogoLockup(markSize: 68, wordmarkSize: 26)
-        AuraeLogoLockup(markSize: 40, wordmarkSize: 17, ringCount: 2)
+        AuraeLogoLockup(markSize: 40, wordmarkSize: 17, wordmarkColor: .auraeAdaptivePrimaryText, ringCount: 2)
         AuraeLogoLockup(markSize: 24, wordmarkSize: 13,
                         wordmarkColor: .auraeTextSecondary, ringCount: 2)
     }
