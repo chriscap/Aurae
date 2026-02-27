@@ -547,8 +547,9 @@ struct RetroStarRating: View {
                             .frame(minWidth: Layout.minTapTarget, minHeight: Layout.minTapTarget)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("\(star) star\(star == 1 ? "" : "s")")
-                    .accessibilityAddTraits(star == rating ? [.isSelected] : [])
+                    .accessibilityLabel(star <= rating ? "\(star) out of 5, selected" : "\(star) out of 5")
+                    .accessibilityHint(rating == star ? "Double-tap to deselect" : "Double-tap to select")
+                    .accessibilityAddTraits(star <= rating ? .isSelected : [])
                 }
                 Spacer()
             }
@@ -606,8 +607,9 @@ struct RetroIntensityScale: View {
                             .clipShape(RoundedRectangle(cornerRadius: Layout.severityPillRadius, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("\(label): \(level)")
-                    .accessibilityAddTraits(rating == level ? [.isSelected] : [])
+                    .accessibilityLabel(rating == level ? "\(level) out of 5, selected" : "\(level) out of 5")
+                    .accessibilityHint(rating == level ? "Double-tap to deselect" : "Double-tap to select")
+                    .accessibilityAddTraits(rating == level ? .isSelected : [])
                 }
             }
         }

@@ -50,7 +50,7 @@ struct MedicationSection: View {
 
             // Effectiveness stars — only show once a name is entered
             if !medicationName.isEmpty {
-                RetroStarRating(label: "Effectiveness", rating: $medicationEffectiveness)
+                RetroStarRating(label: "How much did it help?", rating: $medicationEffectiveness)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
