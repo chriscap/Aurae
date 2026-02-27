@@ -86,7 +86,7 @@ struct HistoryView: View {
                     pendingDeleteIDs.removeAll()
                 }
             } message: {
-                Text("This will permanently delete the log and all associated data.")
+                Text("This will permanently delete this log and its associated weather and health snapshots. Your Apple Health data is not affected.")
             }
             .sheet(item: $logForRetrospective) { log in
                 RetrospectiveView(log: log, context: modelContext)
@@ -166,7 +166,7 @@ struct HistoryView: View {
                     logForRetrospective = log
                 } label: {
                     Label(
-                        log.retrospective == nil ? "Add details" : "Edit details",
+                        log.retrospective == nil ? "Add notes" : "Edit notes",
                         systemImage: "pencil"
                     )
                 }
@@ -195,7 +195,7 @@ struct HistoryView: View {
 
                 Spacer()
 
-                Text("\(group.count) log\(group.count == 1 ? "" : "s")")
+                Text("\(group.count) \(group.count == 1 ? "entry" : "entries")")
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeMidGray)
             }
@@ -238,10 +238,10 @@ struct HistoryView: View {
                 .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Export Clinical Report")
+                    Text("Export Report")
                         .font(.auraeCalloutBold)
                         .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                    Text("Share a summary with your doctor")
+                    Text("Share your headache history with your doctor")
                         .font(.auraeCaption)
                         .foregroundStyle(Color.auraeTextSecondary)
                 }
@@ -261,7 +261,7 @@ struct HistoryView: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Export Clinical Report")
+        .accessibilityLabel("Export Report")
         .accessibilityHint("Opens the data export screen")
     }
 

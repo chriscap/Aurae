@@ -254,7 +254,7 @@ private struct RetrospectivePage: View {
     var body: some View {
         OnboardingPageShell(
             headline: "Fill in the rest.",
-            subtitle: "Add food, stress, sleep quality, and medication after the headache passes. The more you log, the smarter Aurae gets.",
+            subtitle: "Add food, stress, sleep quality, and medication after the headache passes. The more you log, the clearer your patterns become.",
             onNext: onNext
         ) {
             ForEach(features, id: \.text) { feature in
@@ -501,13 +501,13 @@ private struct PermissionsPage: View {
             icon:       "heart.fill",
             iconColor:  Color.auraeDestructive,   // matches severityAccent(for: 5)
             title:      "Apple Health",
-            detail:     "Read sleep, heart rate, and activity at headache onset. Never written to."
+            detail:     "Reads sleep, heart rate, and activity at the moment you log. Aurae never adds data to Apple Health."
         ),
         PermissionItem(
             icon:       "location.fill",
             iconColor:  .auraeTeal,
             title:      "Location",
-            detail:     "Used once per log to fetch local weather. Never stored."
+            detail:     "Used to fetch local weather at the time you log. Your location is never stored."
         ),
         PermissionItem(
             icon:       "bell.fill",

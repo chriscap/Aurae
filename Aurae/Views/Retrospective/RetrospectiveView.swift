@@ -116,14 +116,14 @@ struct RetrospectiveView: View {
                 // Sticky save button — sits above the scroll content
                 saveButtonBar
             }
-            .navigationTitle("Log Details")
+            .navigationTitle("Your Notes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .alert("Discard changes?", isPresented: $showDiscardAlert) {
-                Button("Discard", role: .destructive) { dismiss() }
+            .alert("Leave without saving?", isPresented: $showDiscardAlert) {
+                Button("Leave", role: .destructive) { dismiss() }
                 Button("Keep editing", role: .cancel) { }
             } message: {
-                Text("You have unsaved changes. They will be lost if you go back now.")
+                Text("Your notes haven't been saved yet. You can come back to this entry from your history.")
             }
         }
     }
@@ -169,7 +169,7 @@ struct RetrospectiveView: View {
             viewModel.environmentSectionHasData
         ].filter { $0 }.count
 
-        return Text("\(completedCount) of 4 sections complete")
+        return Text("\(completedCount) of 4 sections filled in")
             .font(.auraeCaption)
             .foregroundStyle(Color.auraeMidGray)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -206,7 +206,7 @@ struct RetrospectiveView: View {
                 // state is sufficient feedback without extra copy beneath it.
                 if !viewModel.hasUnsavedChanges && !viewModel.isSaving
                     && viewModel.hadExistingRetrospectiveOnEntry {
-                    Text("No changes to save yet.")
+                    Text("No changes made.")
                         .font(.auraeCaption)
                         .foregroundStyle(Color.auraeMidGray)
                         .frame(maxWidth: .infinity, alignment: .center)

@@ -135,7 +135,7 @@ struct HomeView: View {
                 .foregroundStyle(Color.auraePrimary)
         }
         .frame(width: 36, height: 36)
-        .accessibilityLabel("Profile: \(userDisplayName.isEmpty ? "Set your name in Settings" : userDisplayName)")
+        .accessibilityLabel("Profile: \(userDisplayName.isEmpty ? "Set your name in Profile" : userDisplayName)")
     }
 
     // MARK: - Log or active headache card
@@ -206,7 +206,7 @@ struct HomeView: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Headache-free streak")
+                Text("Days headache-free")
                     .font(.auraeCallout)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText.opacity(0.70))
 
@@ -247,7 +247,7 @@ struct HomeView: View {
         }()
 
         return VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
-            Text("This Month")
+            Text("Last 30 Days")
                 .font(.auraeHeadline)
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
@@ -496,9 +496,9 @@ struct HomeView: View {
                         let elapsed = Date.now.timeIntervalSince(log.onsetTime)
                         let minutes = Int(elapsed / 60)
                         let text: String = {
-                            if minutes < 60 { return "\(minutes)m so far" }
+                            if minutes < 60 { return "\(minutes)m" }
                             let h = minutes / 60; let m = minutes % 60
-                            return m == 0 ? "\(h)h so far" : "\(h)h \(m)m so far"
+                            return m == 0 ? "\(h)h" : "\(h)h \(m)m"
                         }()
                         Text(text)
                             .font(.auraeCaption)

@@ -75,7 +75,7 @@ struct LogDetailView: View {
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This will mark the headache as resolved at the current time.")
+            Text("Your headache will be marked as resolved now, and any scheduled follow-up reminder will be cancelled.")
         }
     }
 
@@ -163,7 +163,7 @@ struct LogDetailView: View {
             text  = d
             color = Color.auraeMidGray
         } else {
-            text  = "Duration unknown"
+            text  = "Duration not recorded"
             color = Color.auraeMidGray
         }
         return Text(text)
@@ -194,7 +194,7 @@ struct LogDetailView: View {
 
     private var onsetDataSection: some View {
         VStack(alignment: .leading, spacing: Layout.itemSpacing) {
-            DetailSectionHeader(title: "AT ONSET")
+            DetailSectionHeader(title: "WHEN IT STARTED")
 
             if log.weather == nil && log.health == nil {
                 noDataPlaceholder
@@ -220,7 +220,7 @@ struct LogDetailView: View {
                 .foregroundStyle(Color.auraeMidGray)
                 .accessibilityHidden(true)
 
-            Text("Weather and health data wasn't available when this headache was logged.")
+            Text("Weather and health data was not captured for this entry. This can happen if location or Health access was unavailable at the time.")
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)
         }
@@ -243,14 +243,14 @@ struct LogDetailView: View {
                 Button {
                     showRetrospective = true
                 } label: {
-                    Text(log.retrospective?.hasAnyData == true ? "Edit" : "Add details")
+                    Text(log.retrospective?.hasAnyData == true ? "Edit notes" : "Add notes")
                         .font(.auraeLabel)
                         .foregroundStyle(Color.auraeTealAccessible)
                 }
                 .accessibilityLabel(
                     log.retrospective?.hasAnyData == true
-                        ? "Edit retrospective details"
-                        : "Add retrospective details"
+                        ? "Edit retrospective notes"
+                        : "Add retrospective notes"
                 )
             }
 
@@ -276,7 +276,7 @@ struct LogDetailView: View {
 
             // Secondary style so this CTA doesn't compete with the
             // primary "Mark as Resolved" action above. (REC-17)
-            AuraeButton("Add details", style: .secondary) {
+            AuraeButton("Add notes", style: .secondary) {
                 showRetrospective = true
             }
             .accessibilityHint("Opens the retrospective form to add notes about this headache")
@@ -772,7 +772,7 @@ struct RetrospectiveReadView: View {
         case 2: return "2 — Low"
         case 3: return "3 — Moderate"
         case 4: return "4 — High"
-        case 5: return "5 — Extreme"
+        case 5: return "5 — Very high"
         default: return "\(level)"
         }
     }

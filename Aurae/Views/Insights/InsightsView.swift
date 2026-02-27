@@ -146,7 +146,7 @@ struct InsightsView: View {
             VStack(spacing: Layout.itemSpacing) {
                 ProgressView()
                     .tint(Color.auraePrimary)
-                Text("Analysing your patterns…")
+                Text("Analyzing your patterns…")
                     .font(.auraeBody)
                     .foregroundStyle(Color.auraeMidGray)
             }
@@ -195,7 +195,7 @@ struct InsightsView: View {
                 }
                 .accessibilityHidden(true)
 
-                Text("Unlock Insights")
+                Text("Unlock with Aurae Pro")
                     .font(.auraeH2)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
@@ -211,7 +211,7 @@ struct InsightsView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Layout.screenPadding)
 
-                AuraeButton("Unlock Insights") { showPaywall = true }
+                AuraeButton("Unlock with Aurae Pro") { showPaywall = true }
                     .accessibilityHint("Opens the upgrade screen for Aurae Pro")
                     .padding(.horizontal, Layout.screenPadding)
             }
@@ -365,7 +365,7 @@ struct InsightsView: View {
             }
             .accessibilityHidden(true)
 
-            Text("Keep logging")
+            Text("Patterns take time")
                 .font(.auraeH2)
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
@@ -402,7 +402,7 @@ struct InsightsView: View {
                         .font(.auraeCaption)
                         .foregroundStyle(Color.auraePrimary)
                     Spacer()
-                    Text("Goal: \(InsightsService.minimumLogs)")
+                    Text("\(InsightsService.minimumLogs) to unlock")
                         .font(.auraeCaption)
                         .foregroundStyle(Color.auraeMidGray)
                 }
@@ -410,7 +410,7 @@ struct InsightsView: View {
             .padding(.horizontal, Layout.screenPadding * 2)
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Keep logging. \(remainingText) \(viewModel.totalLogs) of \(InsightsService.minimumLogs) logged.")
+        .accessibilityLabel("Patterns take time. \(remainingText) \(viewModel.totalLogs) of \(InsightsService.minimumLogs) logged.")
     }
 
     // MARK: - Medication overuse awareness card (D-32)
@@ -536,7 +536,7 @@ extension InsightsView {
                     )
                 }
                 StatCard(
-                    value: "\(report.streakDays)d",
+                    value: "\(report.streakDays)",
                     label: "Headache-free streak",
                     icon: "flame.fill",
                     iconColor: Color.auraeAmber
@@ -595,7 +595,7 @@ extension InsightsView {
 extension InsightsView {
 
     private func patternsCard(report: InsightsReport) -> some View {
-        InsightCard(title: "When Do They Hit?") {
+        InsightCard(title: "Timing Patterns") {
             VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
                 // Day of week heatmap
                 VStack(alignment: .leading, spacing: 8) {
@@ -681,7 +681,7 @@ extension InsightsView {
                         .lineSpacing(3)
                 }
             } else {
-                Text("Not enough sleep data yet. Log retrospective sleep hours to see this insight.")
+                Text("Sleep data will appear here once you've logged sleep hours in a few retrospective entries.")
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeMidGray)
             }

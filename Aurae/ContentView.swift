@@ -147,7 +147,7 @@ struct ProfileView: View {
     }
 
     private var trackingSinceText: String {
-        guard let earliest = logs.last else { return "No logs yet" }
+        guard let earliest = logs.last else { return "Start logging to build your history." }
         let fmt = DateFormatter()
         fmt.dateFormat = "MMM yyyy"
         return "Tracking since \(fmt.string(from: earliest.onsetTime))"
@@ -200,17 +200,17 @@ struct ProfileView: View {
             Button("Save") { displayName = nameEditText.trimmingCharacters(in: .whitespaces) }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This name appears in your profile header.")
+            Text("This name appears in your daily greeting on the home screen.")
         }
         .confirmationDialog(
-            "Delete all headache logs?",
+            "Delete all logs?",
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
             Button("Delete Everything", role: .destructive) { deleteAllData() }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This cannot be undone. All headache logs, weather snapshots, and health data stored on this device will be permanently removed.")
+            Text("This will permanently delete all headache logs and associated data stored in Aurae on this device. This cannot be undone. Your Apple Health data is not affected.")
         }
     }
 
@@ -239,11 +239,7 @@ struct ProfileView: View {
             Divider()
                 .frame(height: 36)
                 .background(Color.auraeBorder)
-            statColumn(value: "\(dayStreak)", label: "Day Streak")
-            Divider()
-                .frame(height: 36)
-                .background(Color.auraeBorder)
-            statColumn(value: "—", label: "Patterns Found")
+            statColumn(value: "\(dayStreak)", label: "Headache-free days")
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
@@ -450,7 +446,7 @@ struct ProfileView: View {
 
     private var dataSection: some View {
         VStack(alignment: .leading, spacing: AuraeSpacing.sm) {
-            sectionHeader("DATA")
+            sectionHeader("YOUR DATA")
             VStack(spacing: 0) {
 
                 // Temperature unit
@@ -642,7 +638,7 @@ struct ProfileView: View {
                     Text("Medical Disclaimer")
                         .font(.auraeH1)
                         .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                    Text("Aurae is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease. Always consult a qualified healthcare provider for medical advice.")
+                    Text("Aurae is a personal tracking tool, not a medical device. It is not intended to diagnose, treat, cure, or prevent any medical condition. Always consult a qualified healthcare provider for medical advice about your headaches.")
                         .font(.auraeBody)
                         .foregroundStyle(Color.auraeAdaptivePrimaryText)
                         .lineSpacing(4)
@@ -744,7 +740,7 @@ struct ProfileView: View {
             Text("Help & FAQ")
                 .font(.auraeTitle1)
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
-            Text("Coming soon. For support, visit our website.")
+            Text("For help or feedback, email support@aurae.app")
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeTextSecondary)
         }
