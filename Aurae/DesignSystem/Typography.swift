@@ -32,16 +32,28 @@ extension Font {
         return .system(size: size, weight: .bold, design: .default).relativeTo(textStyle, size: size)
     }
 
+    /// DM Serif Display — at 26pt+ returns the bundled custom font;
+    /// below 26pt falls back to system bold to prevent thin-stroke collapse on dark surfaces.
     static func dmSerifDisplay(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        if size >= 26 {
+            return .custom("DMSerifDisplay-Regular", size: size, relativeTo: .title)
+        }
         return .system(size: size, weight: .bold)
     }
 
-    /// Fraunces alias — forwards to system font for zero-diff migration.
+    /// Fraunces alias — forwards to dmSerifDisplay for ≥26pt (editorial warmth);
+    /// falls back to system font below 26pt (functional UI, thin-stroke safety).
     static func fraunces(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        if size >= 26 {
+            return .custom("DMSerifDisplay-Regular", size: size, relativeTo: .title)
+        }
         return .system(size: size, weight: weight)
     }
 
     static func fraunces(_ size: CGFloat, weight: Font.Weight = .bold, relativeTo textStyle: Font.TextStyle) -> Font {
+        if size >= 26 {
+            return .custom("DMSerifDisplay-Regular", size: size, relativeTo: textStyle)
+        }
         return .system(size: size, weight: weight)
     }
 
