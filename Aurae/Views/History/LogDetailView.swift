@@ -828,10 +828,11 @@ private struct RetroReadCard<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.auraeLabel)
                 .foregroundStyle(Color.auraeMidGray)
+                .tracking(1.0)
                 .accessibilityAddTraits(.isHeader)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -853,22 +854,23 @@ private struct RetroReadCard<Content: View>: View {
 // MARK: RetroReadRow
 
 /// A single label + value row inside a RetroReadCard.
+/// Vertical stacking (caption label above, semibold value below) matches WeatherMetricCell
+/// and HealthMetricCell — avoids jarring horizontal scale jump between 12pt label and 16pt value.
 private struct RetroReadRow: View {
     let label: String
     let value: String
 
     var body: some View {
-        HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.auraeCaption)
                 .foregroundStyle(Color.auraeMidGray)
-                .frame(minWidth: 100, alignment: .leading)
 
             Text(value)
-                .font(.auraeBody)
+                .font(.auraeLabel)
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
     }
@@ -912,24 +914,24 @@ private struct RetroReadStars: View {
 
 // MARK: RetroReadTagRow
 
-/// A wrapping row of read-only tag pills (symptoms, meals, triggers).
+/// Read-only display of logged items — plain inline text joined with a centered dot separator.
+/// No pill/chip containers in display mode: containers signal interactive affordance (toggle state),
+/// which is misleading in a read-only context. Plain text communicates settled, logged fact.
 private struct RetroReadTagRow: View {
     let tags: [String]
 
+    private var displayText: String {
+        tags.joined(separator: "  ·  ")
+    }
+
     var body: some View {
-        WrappingHStack(spacing: 6) {
-            ForEach(tags, id: \.self) { tag in
-                Text(tag)
-                    .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.auraeAdaptiveSecondary)
-                    .clipShape(Capsule())
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(tags.joined(separator: ", "))
+        Text(displayText)
+            .font(.auraeBody)
+            .foregroundStyle(Color.auraeAdaptivePrimaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(tags.joined(separator: ", "))
     }
 }
 
