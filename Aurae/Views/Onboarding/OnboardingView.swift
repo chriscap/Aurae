@@ -173,7 +173,7 @@ private struct WelcomePage: View {
                 .padding(.bottom, 20)
 
             // Subtitle
-            Text("Aurae automatically captures weather, sleep, and health data the moment a headache starts — so you can find your triggers.")
+            Text("Track what happens before, during, and after each headache — and find patterns that may be unique to you.")
                 .font(.auraeBody)
                 .foregroundStyle(Color.auraeMidGray)
                 .multilineTextAlignment(.center)

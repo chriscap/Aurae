@@ -752,4 +752,36 @@ The following additional implementation items were added at v1.6 (23 Feb 2026) a
 
 ---
 
+## 17. App Store Metadata
+
+*Locked 2026-02-26. Source: PM review of brand direction (senior-product-manager agent ad518f4) and brand identity spec (ios-health-brand-designer agent a83dcd0), with clinical advisor modifications (ios-migraine-clinical-advisor agent a08495c).*
+
+### Category
+**Health & Fitness** (not Medical). Rationale: Aurae makes no diagnostic or treatment claims; Medical category invites regulatory scrutiny and slower review. Competitors (Migraine Buddy, Bearable) operate in Health & Fitness, where target search traffic lives.
+
+### App Name
+Aurae
+
+### Subtitle (30 chars max)
+`Migraine & headache tracker`
+*(28 chars. Contains highest-volume search terms. "Tracker" is functional and makes no clinical claim.)*
+
+### Description — Opening (first 255 chars, indexed by App Store)
+"Aurae captures what happens in the hours before and during a headache or migraine — sleep, weather, and what you notice about how you feel — and surfaces patterns that may be unique to you. There are no accounts. All of your data stays on your device, private by design, available whenever you need it for a conversation with your care team."
+
+*Clinical constraints: No "triggers," "prevent," "diagnose," "cure," "AI-powered," "clinically proven," or outcome promises. "Migraine" added to sentence one for ASO indexing (clinical advisor confirmed no additional claim risk).*
+
+### Keywords (100 chars — to be finalized before submission)
+`migraine,headache,tracker,diary,journal,log,trigger,pattern,sleep,weather,health,pain,aura`
+*(94 chars. Do not include words already in the app name or subtitle — Apple deduplicates.)*
+
+### Age Rating
+4+ (no objectionable content)
+
+### Privacy Nutrition Label (required)
+- Data Not Collected (all data is on-device, no analytics, no crash reporting in production)
+- Confirm with engineering before submission that no third-party SDKs collect identifiers
+
+---
+
 *Document prepared for internal product and engineering review. All specifications subject to iteration based on user research and technical feasibility assessments.*
