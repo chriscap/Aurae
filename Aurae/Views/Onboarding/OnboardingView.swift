@@ -281,7 +281,7 @@ private struct InsightsPage: View {
             VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
                 // Headline
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Discover your triggers.")
+                    Text("Discover your patterns.")
                         .font(.fraunces(28, weight: .semibold))
                         .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
