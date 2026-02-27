@@ -24,7 +24,6 @@ struct HomeView: View {
     @AppStorage("userDisplayName") private var userDisplayName: String = ""
 
     @State private var viewModel = HomeViewModel()
-    @State private var showSettings = false
     @State private var showLogModal = false
     @State private var showMedicalEscalation = false
 
@@ -84,21 +83,11 @@ struct HomeView: View {
                         .zIndex(10)
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gear")
-                            .foregroundStyle(Color.auraeAdaptivePrimaryText)
-                    }
-                    .accessibilityLabel("Settings")
-                }
-            }
             .sheet(isPresented: $showLogModal) {
                 LogHeadacheModal(viewModel: viewModel)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(item: $viewModel.logPendingRetrospective) { log in
                 RetrospectiveView(log: log, context: modelContext)
             }
