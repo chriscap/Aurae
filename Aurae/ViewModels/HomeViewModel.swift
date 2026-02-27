@@ -298,7 +298,21 @@ final class HomeViewModel {
 
     private nonisolated func captureHealth() async -> HealthSnapshot? {
         let snapshot = await HealthKitService.shared.snapshot()
-        return snapshot.hasAnyData ? snapshot : nil
+        if snapshot.hasAnyData { return snapshot }
+        #if DEBUG
+        // Simulator has no real HealthKit data. Return a mock snapshot so
+        // the health card is visible during development. No effect in production.
+        return HealthSnapshot(
+            heartRate:        72,
+            hrv:              44,
+            oxygenSaturation: 98,
+            restingHeartRate: 64,
+            stepCount:        4_200,
+            sleepHours:       7.5
+        )
+        #else
+        return nil
+        #endif
     }
 
     // =========================================================================

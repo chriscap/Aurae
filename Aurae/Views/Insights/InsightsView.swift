@@ -51,6 +51,16 @@ struct InsightsView: View {
 
     @Environment(\.entitlementService) private var entitlementService
 
+    /// In DEBUG builds, treat all users as Pro so insights content is
+    /// visible without a real subscription. No effect in production.
+    private var effectiveIsPro: Bool {
+        #if DEBUG
+        return true
+        #else
+        return entitlementService.isPro
+        #endif
+    }
+
     // MARK: - Red-flag detection (D-18, D-31, D-33)
     //
     // Show the safety banner when the most recent ACTIVE log has a red-flag
@@ -128,7 +138,7 @@ struct InsightsView: View {
 
     @ViewBuilder
     private var content: some View {
-        if !entitlementService.isPro {
+        if !effectiveIsPro {
             lockedView
         } else if viewModel.isLoading {
             // Contextual loading state — tells the user what is happening
