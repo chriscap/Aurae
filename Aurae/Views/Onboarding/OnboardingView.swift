@@ -282,7 +282,7 @@ private struct InsightsPage: View {
                         .font(.fraunces(28, weight: .semibold))
                         .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
-                    Text("Aurae Pro analyses your patterns and surfaces your personal triggers — weather pressure drops, poor sleep, skipped meals, and more.")
+                    Text("Aurae Pro analyses your patterns and surfaces associations you may not have noticed — weather pressure drops, poor sleep, skipped meals, and more.")
                         .font(.auraeBody)
                         .foregroundStyle(Color.auraeMidGray)
                         .lineSpacing(4)

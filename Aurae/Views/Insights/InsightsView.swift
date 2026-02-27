@@ -559,9 +559,9 @@ extension InsightsView {
 extension InsightsView {
 
     private func triggersCard(report: InsightsReport) -> some View {
-        InsightCard(title: "Your Top Triggers") {
+        InsightCard(title: "Frequently Logged Before Headaches") {
             if report.mostCommonTriggers.isEmpty {
-                Text("Log retrospective data to see your trigger patterns.")
+                Text("Log retrospective data to see your pattern associations.")
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeMidGray)
             } else {
@@ -694,11 +694,18 @@ extension InsightsView {
 extension InsightsView {
 
     private func medicationCard(report: InsightsReport) -> some View {
-        InsightCard(title: "What's Working") {
+        InsightCard(title: "Your Medication Ratings") {
             VStack(spacing: Layout.itemSpacing) {
                 ForEach(report.medicationEffectiveness, id: \.name) { item in
                     MedicationRow(name: item.name, avgEffectiveness: item.avgEffectiveness)
                 }
+                // Inline disclaimer — required by clinical advisor (P2-A sign-off 2026-02-27).
+                // Effectiveness ratings are user-reported subjective assessments only.
+                Text("These ratings reflect your personal logged experiences only. Discuss medication decisions with your healthcare provider.")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeMidGray)
+                    .lineSpacing(2)
+                    .padding(.top, AuraeSpacing.xxs)
             }
         }
     }

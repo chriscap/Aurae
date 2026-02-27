@@ -318,6 +318,13 @@ struct HomeView: View {
                 ForEach(insights, id: \.title) { insight in
                     insightCard(icon: insight.icon, title: insight.title, description: insight.description)
                 }
+                // Correlational disclaimer — required by clinical advisor.
+                // Free users on this surface have no Insights tab disclaimer infrastructure.
+                Text("These patterns reflect associations in your logged data, not confirmed causes.")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeTextSecondary)
+                    .padding(.top, AuraeSpacing.xxs)
+                    .accessibilityHidden(true)
             }
         }
     }
@@ -372,7 +379,7 @@ struct HomeView: View {
                 result.append(QuickInsight(
                     icon: "moon.fill",
                     title: "Sleep Pattern",
-                    description: "\(pct)% of your logged headaches followed nights with less than 6 hours of sleep"
+                    description: "\(pct)% of your logged episodes were preceded by less than 6 hours of sleep. Sleep patterns may be worth discussing with your care team."
                 ))
             }
         }
@@ -383,8 +390,8 @@ struct HomeView: View {
         if fallingCount >= 2 {
             result.append(QuickInsight(
                 icon: "cloud.fill",
-                title: "Weather Trigger",
-                description: "Barometric pressure changes were logged on many of your headache days"
+                title: "Weather Association",
+                description: "Barometric pressure changes were frequently logged around your headache episodes. This may be worth discussing with your care team."
             ))
         }
 
