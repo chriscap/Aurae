@@ -106,6 +106,15 @@ struct AuraeApp: App {
 private struct RootView: View {
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("darkModePreference") private var darkModePreference: String = "system"
+
+    private var preferredColorScheme: ColorScheme? {
+        switch darkModePreference {
+        case "light": return .light
+        case "dark":  return .dark
+        default:      return nil
+        }
+    }
 
     /// Two-way binding that maps `hasCompletedOnboarding` onto
     /// `isPresented` for the full-screen cover.
@@ -129,8 +138,7 @@ private struct RootView: View {
 
     var body: some View {
         ContentView()
-            // Adaptive color scheme — respects the user's system setting.
-            // The app is designed for both light and dark mode.
+            .preferredColorScheme(preferredColorScheme)
             .fullScreenCover(isPresented: showOnboarding) {
                 OnboardingView {
                     hasCompletedOnboarding = true

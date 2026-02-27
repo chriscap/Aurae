@@ -110,18 +110,13 @@ struct HistoryView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Picker("View", selection: $viewModel.displayMode) {
-                ForEach(HistoryViewModel.DisplayMode.allCases) { mode in
-                    Label(
-                        mode.rawValue,
-                        systemImage: mode == .list ? "list.bullet" : "calendar"
-                    )
-                    .tag(mode)
-                }
+            Button {
+                viewModel.displayMode = viewModel.displayMode == .list ? .calendar : .list
+            } label: {
+                Image(systemName: viewModel.displayMode == .list ? "calendar" : "list.bullet")
+                    .foregroundStyle(Color.auraePrimary)
             }
-            .pickerStyle(.segmented)
-            .frame(width: 100)
-            .accessibilityLabel("Toggle list or calendar view")
+            .accessibilityLabel(viewModel.displayMode == .list ? "Switch to calendar view" : "Switch to list view")
         }
     }
 
