@@ -151,21 +151,18 @@ private struct WelcomePage: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Decorative logo mark — app name "Aurae" in the headline below
-            // conveys identity to VoiceOver users. (A18-09)
-            ZStack {
-                Circle()
-                    .fill(Color.auraeTeal)
-                    .frame(width: 96, height: 96)
-                Text("A")
-                    .font(.fraunces(52, weight: .bold))
-                    .foregroundStyle(Color.auraeDeepSlate)
+            // Brand mark — AuraeLogoMark + wordmark lockup.
+            // App identity conveyed by the "Aurae" accessibilityLabel on AuraeLogoLockup.
+            VStack(spacing: 10) {
+                AuraeLogoMark(markSize: 68)
+                Text("aurae")
+                    .font(.system(size: 26, weight: .semibold, design: .default))
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
-            .padding(.bottom, 36)
-            .accessibilityHidden(true)
+            .padding(.bottom, 28)
 
             // Headline
-            Text("Understand your headaches.")
+            Text("Understand your patterns.")
                 .font(.fraunces(34, weight: .bold, relativeTo: .largeTitle))
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 .multilineTextAlignment(.center)

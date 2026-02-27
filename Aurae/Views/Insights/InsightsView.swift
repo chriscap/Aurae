@@ -185,14 +185,13 @@ struct InsightsView: View {
 
             // Overlay
             VStack(spacing: Layout.itemSpacing) {
-                // Decorative lock badge — meaning conveyed by heading text below.
+                // Decorative lock badge — brand mark with lock overlay.
+                // Meaning conveyed by heading text below; mark is decorative. (A18-04)
                 ZStack {
-                    Circle()
-                        .fill(Color.auraePrimary)
-                        .frame(width: 64, height: 64)
+                    AuraeLogoMark(markSize: 52, opacity: 0.70)
                     Image(systemName: "lock.fill")
-                        .font(.system(size: 26, weight: .medium))
-                        .foregroundStyle(Color.auraeDeepSlate)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 }
                 .accessibilityHidden(true)
 
@@ -200,7 +199,7 @@ struct InsightsView: View {
                     .font(.auraeH2)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
-                Text("Aurae Pro analyses your pattern history and surfaces your personal triggers.")
+                Text("Aurae Pro surfaces the patterns in your logged data — associations you may not have noticed on your own.")
                     .font(.auraeBody)
                     .foregroundStyle(Color.auraeMidGray)
                     .multilineTextAlignment(.center)
@@ -421,6 +420,12 @@ struct InsightsView: View {
     private func fullInsightsScrollView(report: InsightsReport) -> some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
+
+                // Episode count trust signal
+                Text("Based on your \(report.totalLogs) logged episodes")
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeTextSecondary)
+                    .padding(.bottom, AuraeSpacing.xs)
 
                 // CHANGE 7: First-time dismissible disclaimer banner (D-22)
                 if !hasSeenInsightsDisclaimer {

@@ -27,8 +27,29 @@ struct ContentView: View {
 
     init() {
         let appearance = UITabBarAppearance()
-        appearance.configureWithDefaultBackground()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(hex: "1A2332") : UIColor(hex: "FFFFFF")
+        }
         appearance.shadowColor = UIColor(Color.auraePrimary).withAlphaComponent(0.15)
+
+        // Unselected item color
+        let itemAppearance = UITabBarItemAppearance()
+        itemAppearance.normal.iconColor = UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(hex: "8A9BAD") : UIColor(hex: "6B7280")
+        }
+        itemAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor { traits in
+                traits.userInterfaceStyle == .dark
+                    ? UIColor(hex: "8A9BAD") : UIColor(hex: "6B7280")
+            }
+        ]
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
+
         UITabBar.appearance().standardAppearance  = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
@@ -277,12 +298,20 @@ struct ProfileView: View {
     // MARK: Footer
 
     private var appFooter: some View {
-        VStack(spacing: AuraeSpacing.xxs) {
-            Text("Aurae v1.0.0")
-            Text("Made with care for headache sufferers")
+        VStack(spacing: AuraeSpacing.sm) {
+            AuraeLogoLockup(
+                markSize: 24,
+                wordmarkSize: 13,
+                wordmarkColor: Color.auraeTextSecondary,
+                ringCount: 2
+            )
+            Text("Your patterns, privately yours.")
+                .font(.auraeCaption)
+                .foregroundStyle(Color.auraeTextSecondary)
+            Text("v1.0.0")
+                .font(.system(size: 10))
+                .foregroundStyle(Color.auraeTextSecondary.opacity(0.40))
         }
-        .font(.auraeCaption)
-        .foregroundStyle(Color.auraeTextSecondary)
         .frame(maxWidth: .infinity)
         .padding(.top, AuraeSpacing.xl)
     }

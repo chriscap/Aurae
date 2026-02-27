@@ -174,11 +174,11 @@ struct HomeView: View {
         Button { showLogModal = true } label: {
             HStack(spacing: AuraeSpacing.md) {
                 ZStack {
-                    Circle()
-                        .fill(Color.auraePrimary.opacity(0.25))
-                        .frame(width: 44, height: 44)
+                    RoundedRectangle(cornerRadius: AuraeRadius.sm, style: .continuous)
+                        .fill(Color.auraePrimary.opacity(0.12))
+                        .frame(width: 48, height: 48)
                     Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(Color.auraePrimary)
                 }
                 .accessibilityHidden(true)
@@ -205,13 +205,13 @@ struct HomeView: View {
 
     private func streakCard(days: Int) -> some View {
         HStack(spacing: AuraeSpacing.md) {
-            // Icon in a soft circle
+            // Icon — concentric circle echoes brand mark halo
             ZStack {
-                Circle()
-                    .fill(Color.auraePrimary.opacity(0.25))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                    .fill(Color.auraePrimary.opacity(0.12))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "circle.dotted.and.circle")
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(Color.auraePrimary)
             }
             .accessibilityHidden(true)
@@ -272,11 +272,11 @@ struct HomeView: View {
     private func statCard(icon: String, value: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: AuraeSpacing.xs) {
             ZStack {
-                Circle()
-                    .fill(Color.auraeAccent)
-                    .frame(width: 36, height: 36)
+                RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                    .fill(Color.auraePrimary.opacity(0.12))
+                    .frame(width: 32, height: 32)
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color.auraePrimary)
             }
             Text(value)
@@ -314,7 +314,7 @@ struct HomeView: View {
             }
 
             if insights.isEmpty {
-                Text("Log 5 or more headaches to unlock personal insights.")
+                Text("Log 5 or more episodes to start seeing your patterns.")
                     .font(.auraeCaption)
                     .foregroundStyle(Color.auraeTextSecondary)
                     .padding(Layout.cardPadding)
@@ -336,8 +336,8 @@ struct HomeView: View {
     private func insightCard(icon: String, title: String, description: String) -> some View {
         HStack(spacing: AuraeSpacing.md) {
             ZStack {
-                Circle()
-                    .fill(Color.auraeAccent)
+                RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                    .fill(Color.auraePrimary.opacity(0.12))
                     .frame(width: 40, height: 40)
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
@@ -412,17 +412,21 @@ struct HomeView: View {
                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
 
             if recent.isEmpty {
-                Text("No headaches logged yet.")
-                    .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeTextSecondary)
-                    .padding(Layout.cardPadding)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.auraeAdaptiveCard)
-                    .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                            .strokeBorder(Color.auraeBorder, lineWidth: 1)
-                    )
+                VStack(spacing: AuraeSpacing.sm) {
+                    AuraeLogoMark(markSize: 32, ringCount: 2, opacity: 0.18)
+                    Text("Your history will appear here as you log.")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeTextSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(Layout.cardPadding)
+                .frame(maxWidth: .infinity)
+                .background(Color.auraeAdaptiveCard)
+                .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
+                        .strokeBorder(Color.auraeBorder, lineWidth: 1)
+                )
             } else {
                 VStack(spacing: AuraeSpacing.sm) {
                     ForEach(recent) { log in

@@ -213,6 +213,15 @@ extension Color {
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+
+    /// Brand mark gradient — original teal to violet.
+    /// Used exclusively for AuraeLogoMark and deliberate brand gradient moments.
+    /// Do NOT substitute with auraePrimaryGradient — these are different colors.
+    static let auraeMarkGradient = LinearGradient(
+        colors: [Color(hex: "2D7D7D"), Color(hex: "B3A8D9")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 }
 
 // MARK: - Adaptive semantic tokens
