@@ -171,7 +171,7 @@ struct RetrospectiveView: View {
 
         return Text("\(completedCount) of 4 sections filled in")
             .font(.auraeCaption)
-            .foregroundStyle(Color.auraeMidGray)
+            .foregroundStyle(Color.auraeTextCaption)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -208,7 +208,7 @@ struct RetrospectiveView: View {
                     && viewModel.hadExistingRetrospectiveOnEntry {
                     Text("No changes made.")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.top, 4)
                 }
@@ -584,7 +584,7 @@ struct RetroIntensityScale: View {
                 if rating > 0, let levelLabel {
                     Text(levelLabel(rating))
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                 }
             }
 
@@ -644,7 +644,7 @@ struct RetroStepper: View {
 
             Text(formatValue(value))
                 .font(.auraeBody)
-                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeAdaptivePrimaryText)
+                .foregroundStyle(value == range.lowerBound ? Color.auraeTextCaption : Color.auraeAdaptivePrimaryText)
                 .frame(minWidth: 72, alignment: .trailing)
                 .monospacedDigit()
 
@@ -679,7 +679,7 @@ struct RetroStepperDouble: View {
 
             Text(formatValue(value))
                 .font(.auraeBody)
-                .foregroundStyle(value == range.lowerBound ? Color.auraeMidGray : Color.auraeAdaptivePrimaryText)
+                .foregroundStyle(value == range.lowerBound ? Color.auraeTextCaption : Color.auraeAdaptivePrimaryText)
                 .frame(minWidth: 72, alignment: .trailing)
                 .monospacedDigit()
 

@@ -150,7 +150,7 @@ struct ExportView: View {
 
             Text(viewModel.logCountDescription)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
         }
     }
 
@@ -189,7 +189,7 @@ struct ExportView: View {
             if viewModel.selectedLogs.isEmpty && !viewModel.isGenerating {
                 Text("No headache logs in the selected date range.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 4)
             }
@@ -230,7 +230,7 @@ struct ExportView: View {
             // Medical disclaimer
             Text("This report is for informational purposes only and is not medical advice.")
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .multilineTextAlignment(.leading)
         }
     }
@@ -262,7 +262,7 @@ struct ExportView: View {
                             .foregroundStyle(Color.auraeAdaptivePrimaryText)
                         Text("Unlock a detailed clinical-style PDF with full trigger context, symptom history, and trend analysis.")
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray)
+                            .foregroundStyle(Color.auraeTextCaption)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -331,7 +331,7 @@ struct ExportView: View {
                 if viewModel.selectedLogs.isEmpty && !viewModel.isGeneratingFull {
                     Text("No headache logs in the selected date range.")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 4)
                 }
@@ -372,7 +372,7 @@ struct ExportView: View {
                 // Medical disclaimer
                 Text("This report is for informational purposes only and is not medical advice.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .multilineTextAlignment(.leading)
             }
             .padding(Layout.cardPadding)

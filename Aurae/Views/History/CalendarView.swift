@@ -135,7 +135,7 @@ struct CalendarView: View {
             ForEach(weekdayLabels, id: \.self) { label in
                 Text(label)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .frame(maxWidth: .infinity)
                     // Column headers are decorative — the date cells carry the
                     // full accessibility information including the weekday. (A18-01)
@@ -227,7 +227,7 @@ private struct DayCell: View {
                         .foregroundStyle(
                             isToday  ? Color.auraePrimary :
                             hasLogs  ? Color.auraeAdaptivePrimaryText :
-                                       Color.auraeMidGray
+                                       Color.auraeTextCaption
                         )
 
                     if hasLogs {
@@ -333,7 +333,7 @@ struct DayDetailSheet: View {
                         // Count subtitle rendered below the large navigation title.
                         Text(countSubtitle)
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray)
+                            .foregroundStyle(Color.auraeTextCaption)
                             .padding(.horizontal, Layout.screenPadding)
                             .padding(.top, 4)
 

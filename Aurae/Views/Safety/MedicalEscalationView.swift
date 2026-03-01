@@ -80,7 +80,7 @@ struct MedicalEscalationView: View {
                         // Intro copy — empathetic, not clinical-cold
                         Text("Aurae helps you track headache patterns, but some symptoms benefit from prompt medical attention. Use this list as a reference.")
                             .font(.auraeBody)
-                            .foregroundStyle(Color.auraeMidGray)
+                            .foregroundStyle(Color.auraeTextCaption)
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
 
@@ -111,14 +111,14 @@ struct MedicalEscalationView: View {
 
                         Text("This information is for general awareness only. Aurae does not diagnose medication overuse headache or any other condition.")
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray.opacity(0.8))
+                            .foregroundStyle(Color.auraeTextCaption.opacity(0.8))
                             .lineSpacing(3)
                             .fixedSize(horizontal: false, vertical: true)
 
                         // Footer disclaimer
                         Text("This list is not exhaustive. Aurae is a tracking tool, not a medical advisor. If you are concerned about your symptoms, please consult a qualified healthcare professional.")
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray.opacity(0.8))
+                            .foregroundStyle(Color.auraeTextCaption.opacity(0.8))
                             .lineSpacing(3)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.top, Layout.itemSpacing)

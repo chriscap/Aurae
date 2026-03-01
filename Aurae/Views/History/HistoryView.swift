@@ -197,7 +197,7 @@ struct HistoryView: View {
 
                 Text("\(group.count) \(group.count == 1 ? "entry" : "entries")")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             }
             .padding(.horizontal, Layout.screenPadding)
             .padding(.vertical, 10)
@@ -304,7 +304,7 @@ struct HistoryView: View {
 
             Text(body)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Layout.screenPadding * 2)
 

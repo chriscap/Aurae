@@ -94,7 +94,7 @@ struct LifestyleSection: View {
                 // Current value label
                 Text(sleepHoursSet ? formatSleep(sleepHours) : "Not set")
                     .font(.auraeLabel)
-                    .foregroundStyle(sleepHoursSet ? Color.auraeAdaptivePrimaryText : Color.auraeMidGray)
+                    .foregroundStyle(sleepHoursSet ? Color.auraeAdaptivePrimaryText : Color.auraeTextCaption)
                     .frame(minWidth: 52, alignment: .trailing)
             }
 
@@ -115,7 +115,7 @@ struct LifestyleSection: View {
                 Text("12h")
             }
             .font(.auraeCaption)
-            .foregroundStyle(Color.auraeMidGray)
+            .foregroundStyle(Color.auraeTextCaption)
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)

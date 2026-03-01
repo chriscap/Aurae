@@ -104,7 +104,7 @@ struct EnvironmentSection: View {
             // clinically validated — the UI must reflect that ambiguity.
             Text("Self-reported. Select the type that best matches your experience.")
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
@@ -148,7 +148,7 @@ struct EnvironmentSection: View {
                 if notes.isEmpty {
                     Text("Any additional observations...")
                         .font(.auraeBody)
-                        .foregroundStyle(Color.auraeMidGray.opacity(0.7))
+                        .foregroundStyle(Color.auraeTextCaption.opacity(0.7))
                         .padding(.top, 8)
                         .padding(.leading, 4)
                         .allowsHitTesting(false)

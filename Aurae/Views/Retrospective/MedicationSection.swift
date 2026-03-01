@@ -58,7 +58,7 @@ struct MedicationSection: View {
             // Do not remove without clinical + legal sign-off.
             Text("Medication records are for your reference and to support conversations with your care team. Do not adjust or stop any medication based on patterns observed in this app.")
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, Layout.cardPadding)
@@ -77,7 +77,7 @@ struct MedicationSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("How do you take this medication?")
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
 
             HStack(spacing: 8) {
                 medicationTypePill(

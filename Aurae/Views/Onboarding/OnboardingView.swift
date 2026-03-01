@@ -105,7 +105,7 @@ struct OnboardingView: View {
                 } label: {
                     Text("Skip")
                         .font(.auraeLabel)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                 }
                 .padding(.trailing, Layout.screenPadding)
                 .transition(.opacity)
@@ -172,7 +172,7 @@ private struct WelcomePage: View {
             // Subtitle
             Text("Track what happens before, during, and after each headache — and find patterns that may be unique to you.")
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .padding(.horizontal, Layout.screenPadding + 8)
@@ -284,7 +284,7 @@ private struct InsightsPage: View {
 
                     Text("Aurae Pro analyses your patterns and surfaces associations you may not have noticed — weather pressure drops, poor sleep, skipped meals, and more.")
                         .font(.auraeBody)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .lineSpacing(4)
                 }
                 .padding(.top, 8)
@@ -419,7 +419,7 @@ private struct SafetyPage: View {
 
                     Text("Aurae is designed for recurring headaches you already know about.")
                         .font(.auraeBody)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .lineSpacing(4)
                 }
                 .padding(.top, 8)
@@ -443,7 +443,7 @@ private struct SafetyPage: View {
                         .accessibilityHidden(true)
                     Text("If you experience any of these, please seek medical care right away. These symptoms are not what this app is designed to track.")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -461,7 +461,7 @@ private struct SafetyPage: View {
                         .accessibilityHidden(true)
                     Text("Aurae is designed for anyone who experiences recurring headaches, whether or not you experience aura or have a migraine diagnosis.")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -549,7 +549,7 @@ private struct PermissionsPage: View {
                         .accessibilityHidden(true)
                     Text("All permissions are optional. Aurae works without them.")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                 }
                 .padding(Layout.cardPadding)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -592,7 +592,7 @@ private struct OnboardingPageShell<Content: View>: View {
                     if let sub = subtitle {
                         Text(sub)
                             .font(.auraeBody)
-                            .foregroundStyle(Color.auraeMidGray)
+                            .foregroundStyle(Color.auraeTextCaption)
                             .lineSpacing(4)
                     }
                 }
@@ -687,7 +687,7 @@ private struct PermissionRow: View {
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
                 Text(detail)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .fixedSize(horizontal: false, vertical: true)
                     .lineSpacing(2)
             }

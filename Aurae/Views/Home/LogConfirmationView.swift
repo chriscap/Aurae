@@ -142,7 +142,7 @@ struct LogConfirmationView: View {
 
             Text(onsetTimeText)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
 
             severityBadge
         }
@@ -172,7 +172,7 @@ struct LogConfirmationView: View {
     private var hintText: some View {
         Text(hintCopy)
             .font(.auraeCaption)
-            .foregroundStyle(Color.auraeMidGray)
+            .foregroundStyle(Color.auraeTextCaption)
             .multilineTextAlignment(.center)
             .padding(.top, Layout.itemSpacing)
     }
@@ -306,7 +306,7 @@ private struct LogConfirmationPreviewWrapper: View {
             Color.auraeAdaptiveBackground.ignoresSafeArea()
             Text("Home screen behind overlay")
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
             LogConfirmationView(log: log) { }
         }
         .modelContainer(container)
