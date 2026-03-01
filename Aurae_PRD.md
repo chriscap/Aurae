@@ -5,8 +5,8 @@
 | | |
 |---|---|
 | **Document Type** | Product Requirements Document (PRD) |
-| **Version** | 1.7 — In Development |
-| **Date** | February 2026 (updated 27 Feb 2026) |
+| **Version** | 1.8 — In Development |
+| **Date** | February 2026 (updated 28 Feb 2026) |
 | **Platform** | iOS (iPhone-first) |
 | **Stage** | In Development |
 | **Monetization** | Freemium |
@@ -575,6 +575,47 @@ The following language rules apply to all user-facing copy throughout the app, i
 
 These rules were established following clinical advisor review and are encoded in the onboarding copy, Insights locked-state body copy, and App Store description. Any new copy that touches the Insights, onboarding, or paywall must be reviewed against these guardrails before shipping.
 
+### 7.9 Clinical Language Standards — Approved Replacements (v1.8)
+
+These replacements were reviewed and signed off by the Migraine Clinical Advisor on 27 Feb 2026 (commit `41908b9`). They are binding across all user-facing copy. Any reversion requires re-approval by the clinical advisor.
+
+#### Governance Rule
+
+Copy that describes data findings, pattern summaries, or factor associations must use language that:
+1. Positions findings as correlational observations, not causal facts.
+2. Uses "around," "may be," "associated with," or "worth discussing with your care team" rather than definitive claims.
+3. Directs users toward their care team for interpretation rather than implying the app provides clinical conclusions.
+
+#### Approved Replacements (P1/P2 — clinical advisor sign-off required)
+
+| Location | Old copy | New copy | Rationale |
+|---|---|---|---|
+| HomeView — weather trigger card | "Weather Trigger" | "Weather Association" | "Trigger" implies confirmed causation. "Association" is accurate to the correlational method. |
+| HomeView — weather trigger description | (used definitive "trigger" language) | Updated to use "around" and "may be worth discussing with your care team" | Softens from causal claim to observational note with care team prompt. |
+| HomeView — sleep insight card | "followed nights with" | "preceded by" | Directional framing — "preceded by" is observationally accurate without implying the sleep pattern caused the headache. |
+| HomeView — sleep insight card | (no care team prompt) | Added: "Sleep patterns may be worth discussing with your care team." | Consistent with the care-team-referral pattern now required on all pattern-finding surfaces. |
+| OnboardingView | "your personal triggers" | "associations you may not have noticed" | Removes causal "trigger" framing from onboarding; aligns with Section 7.8 guardrails. |
+| InsightsView — trigger card title | "Your Top Triggers" | "Frequently Logged Before Headaches" | Removes the word "Triggers" from a section header entirely. Describes the algorithm accurately (co-occurrence frequency). |
+| InsightsView — medication card title | "What's Working" | "Your Medication Ratings" | "What's Working" implies efficacy conclusions. "Medication Ratings" is descriptive and neutral. Requires inline disclaimer — see below. |
+
+#### Medication Ratings Inline Disclaimer (required)
+
+When "Your Medication Ratings" card is shown in `InsightsView`, an inline disclaimer must appear directly below the card title:
+
+"Your ratings reflect your own experience and are not a recommendation to use or stop any medication. Discuss medication changes with your care team."
+
+This disclaimer is a clinical advisor requirement. It must not be removed without clinical and legal sign-off.
+
+#### Quick Insights Section — Static Correlational Disclaimer (HomeView, Free Tier)
+
+A static correlational disclaimer must appear below the Quick Insights section on `HomeView` for all users (free and premium). This surface was identified as a coverage gap: the Insights tab disclaimer (Section 7.4) does not apply to users who have not navigated to the Insights tab, and free-tier users may never see it.
+
+Required disclaimer copy (displayed below Quick Insights cards on `HomeView`):
+
+"Patterns are based on your logged data. For informational purposes only — not medical advice."
+
+This disclaimer is ungated (shown to all users) and non-dismissible on this surface. It is distinct from the dismissible Insights tab first-view disclaimer (Section 7.4) and does not replace it.
+
 ---
 
 ## 8. Monetization — Freemium Model
@@ -746,10 +787,16 @@ The following UX design review open questions (OQ-A through OQ-E) and P1 issues 
 - **OQ-07 — Icon container shape system:** CLOSED. All icon containers use `RoundedRectangle`, `opacity(0.12)` fill, `.medium` SF Symbol weight. `Circle` fills are migration targets. See D-37.
 - **OQ-08 — Onboarding typography rule:** CLOSED. DM Serif Display at ≥26pt retained for onboarding headlines. `fraunces()` / `dmSerifDisplay()` at ≥26pt returns `Font.custom("DMSerifDisplay-Regular", ...)`. Below 26pt uses system font. See D-38.
 
+### Closed at v1.8 (28 Feb 2026)
+
+- **Step 17 (Settings):** CLOSED. Settings consolidated into `ProfileView` — four sections (PREFERENCES, SUBSCRIPTION, DATA, SUPPORT). `SettingsView.swift` deleted. Gear icon removed from `HomeView`. See D-46.
+- **Rolling window label ("This Month" vs. precise label):** CLOSED. All aggregate labels changed from "This Month" to "Last 30 Days" to reflect the rolling 30-day calculation already in use. Resolves a latent mismatch between label and logic. See D-47.
+- **Retrospective read-mode label conventions:** CLOSED. Canonical labels established: "Add notes" / "Edit notes" / "Your Notes" for all notes entry points across `RetrospectiveView`. Chip containers removed from read-mode tag rows. See D-48 and D-49.
+
 ### Remaining Open Questions
 
 - **Step 16 (Premium PDF):** Which additional charts and contextual sections should be included in the full clinical export? Format and section order to be confirmed before build begins. Owner: PM. Target: before Step 16 build begins.
-- **Step 17 (Settings):** What is the full settings surface? Confirmed items: notification delay preference, "When to Seek Medical Care" screen accessible from Settings. Pending: data deletion flow, unit preferences (°C/°F), and any account-adjacent actions. Owner: PM. Target: before Step 17 build begins.
+- **Step 17 (Settings — CLOSED at v1.8):** Settings surface consolidated into `ProfileView`. `SettingsView.swift` deleted. All settings content now lives in the Profile tab across four sections: PREFERENCES, SUBSCRIPTION, DATA, SUPPORT. Gear icon and settings sheet removed from `HomeView`. See D-46.
 - **OQ-01 — Red-flag banner copy (legal review):** Clinical advisor copy for the conditional safety banner and "When to Seek Medical Care" screen (including the new frequent medication use subsection and the two-tier onset-speed banner copy added at v1.6) must be reviewed and approved by legal counsel before V1 release. Owner: PM. Target: before Step 16 build completion.
 - **OQ-03 — Preventive medication name list:** Engineering requires a seed list of known preventive medication names to apply the conservative nil-classification fallback in the medication overuse count (Section 7.2). Who owns this list? Suggested approach: PM compiles an initial list from clinical advisor input; list is hardcoded in V1 and editable in a future release. Owner: PM + Clinical Advisor. Target: before red-flag banner and medication overuse warning implementation begins.
 
@@ -806,12 +853,19 @@ Decisions made during development that closed previously open questions or estab
 | D-43 | **Tab bar: `configureWithTransparentBackground()` + explicit `auraeAdaptiveCard` background; unselected items use `auraeTextSecondary`.** Applied in `ContentView.swift` `init()`. | The transparent tab bar background caused the tab bar to appear to float over content without a clear surface on dark mode. The explicit card surface creates a grounded separation between content and navigation. `auraeTextSecondary` for unselected items provides a clear selected/unselected distinction that meets WCAG contrast requirements. | 27 Feb 2026 |
 | D-44 | **VoiceOver accessibility improvements shipped across retrospective components.** `RetroStarRating`: per-star labels "N out of 5, selected" / "N out of 5" with hints. `RetroIntensityScale`: same pattern. Medication effectiveness label: "Effectiveness" → "How much did it help?". | Screen reader users navigating star ratings need both the numeric value and the selection state. The previous implementation provided neither. "How much did it help?" is more conversational and natural for VoiceOver reading than "Effectiveness" — it also benefits sighted users reading the label. | 27 Feb 2026 |
 | D-45 | **`RetroIntensityScale` extracted as a reusable standalone component from `LifestyleSection`.** Display name input fix applied. Star rating unselected color fix applied. | Reusability: `RetroIntensityScale` now serves both stress level (LifestyleSection) and any future intensity-scale contexts without copy-paste. The display name input fix resolved a SwiftUI `TextField` focus state bug. The unselected star color fix corrected a regression where unselected stars rendered in the teal accent color instead of `auraeAdaptiveSecondary`. | 27 Feb 2026 |
+| D-46 | **Settings consolidated into ProfileView. `SettingsView.swift` deleted. Gear icon removed from HomeView.** ProfileView restructured into four sections: PREFERENCES, SUBSCRIPTION, DATA, SUPPORT. "Patterns Found" stat removed from Profile header. Closes Step 17 open question. | A dedicated Settings view was a separate file with duplicate navigation surface (gear icon on HomeView) for a very small settings footprint. Consolidation into Profile follows the established iOS health app pattern and reduces top-level navigation complexity. "Patterns Found" was premium-only data displayed in a free-accessible context — creating a misleading or empty state for free users. | 28 Feb 2026 |
+| D-47 | **Rolling window label standardised: "This Month" → "Last 30 Days" across all aggregate views.** Affects HomeView, InsightsView, HistoryView, and any other aggregate label previously reading "This Month." | The underlying calculation has always been a rolling 30-day window, not a calendar-month window. "This Month" was a label mismatch that would produce confusing behavior at month boundaries (e.g. a user logging on March 1 would see January data excluded from "This Month" even though it was within 30 days). "Last 30 Days" is precise, honest, and unambiguous. Single string change across call sites — zero logic change. | 28 Feb 2026 |
+| D-48 | **Canonical retrospective notes labels established: "Add notes" (empty state CTA), "Edit notes" (populated state CTA), "Your Notes" (section header when notes exist).** Applied consistently across all notes entry points in `RetrospectiveView.swift`. | Prior copy was inconsistent ("Add Note," "Edit Note," "Notes," "Your note") across different states of the same UI element. Canonical labels eliminate variation, reduce QA surface area, and produce a consistent VoiceOver experience. The CTA form ("Add notes" / "Edit notes") is action-oriented; the header form ("Your Notes") is possession-oriented — the distinction reflects the different UI role of each label. | 28 Feb 2026 |
+| D-49 | **Chip/pill containers removed from retrospective read-mode tag rows (`RetroReadTagRow`). Replaced with plain inline text joined by " · " separator.** `RetroReadCard` header: `.tracking(1.0)` added, spacing 10→12pt. `RetroReadRow` layout changed from horizontal HStack (12pt label + 16pt body) to vertical VStack (12pt caption above, 13pt SemiBold value below). | Chip/pill containers signal interactive affordance in iOS design conventions. In a display-only read context, chip containers create a false affordance — users expect to tap or remove them. Plain inline text with a separator communicates read-only status correctly. The VStack layout for `RetroReadRow` aligns with the established `WeatherMetricCell`/`HealthMetricCell` pattern used elsewhere in the app — consistency over local variation. The `.tracking(1.0)` on section headers matches the section label treatment used across other card headers. | 28 Feb 2026 |
+| D-50 | **Clinical language: five P1/P2 copy replacements approved by Migraine Clinical Advisor.** "Weather Trigger" → "Weather Association"; sleep insight "followed nights with" → "preceded by" + care team prompt added; onboarding "your personal triggers" → "associations you may not have noticed"; InsightsView "Your Top Triggers" → "Frequently Logged Before Headaches"; InsightsView "What's Working" → "Your Medication Ratings" + inline disclaimer added. Full spec in Section 7.9. | All five replacements address copy that used causal language ("trigger," "what's working") not supported by the co-occurrence algorithm. The clinical advisor reviewed each replacement and confirmed the new language accurately reflects the correlational nature of the underlying analysis. These are P1/P2 items — they must ship before V1 release. The medication ratings inline disclaimer is an additive clinical requirement that accompanies the rename. | 28 Feb 2026 |
+| D-51 | **Quick Insights section on HomeView: static correlational disclaimer added below section (free and premium, ungated, non-dismissible).** Required copy: "Patterns are based on your logged data. For informational purposes only — not medical advice." | Free-tier users who never navigate to the Insights tab are not covered by the Insights tab disclaimer (Section 7.4). HomeView Quick Insights cards surface pattern data (weather associations, streak, sleep correlation snippets) to all users — this surface needed its own disclaimer. The disclaimer is non-dismissible on this surface because it is persistent context for a persistent UI element, unlike the once-dismissible Insights tab modal which is a one-time educational moment. | 28 Feb 2026 |
+| D-52 | **`auraeTextCaption` semantic color token introduced. Governance rule: `auraeTextCaption` for all readable caption text; `auraeMidGray` restricted to decorative icons, chart fills, and opacity-modified de-emphasis.** 37 call sites migrated. Full spec in Section 18.6. | On Dark Matter surfaces, `auraeMidGray` dark (`#6B7280` equivalent in dark mode context) does not achieve WCAG AA contrast for 12pt caption text. The new `auraeTextCaption` token provides an elevated dark-mode value (`#9CAEBE`) that meets WCAG AA while leaving the decorative token unchanged. In light mode both tokens are currently equivalent (`#6B7280`) — the governance rule is applied now to ensure the tokens don't converge back through future edits. Migrating 37 call sites in one pass creates a clean separation. | 28 Feb 2026 |
 
 ---
 
 ## 15. Build Status
 
-Steps are as defined in `CLAUDE.md`. Status as of 27 Feb 2026.
+Steps are as defined in `CLAUDE.md`. Status as of 28 Feb 2026.
 
 | Step | Description | Status |
 |---|---|---|
@@ -831,11 +885,19 @@ Steps are as defined in `CLAUDE.md`. Status as of 27 Feb 2026.
 | 14 | RevenueCat integration + paywall | Complete |
 | 15 | Insights + pattern analysis (premium) | Complete |
 | 16 | Full PDF export (premium) | Not built — stub only |
-| 17 | Settings screen | Not built |
+| 17 | Settings screen | Complete — consolidated into ProfileView (D-46) |
 | 18 | Accessibility pass (Dynamic Type, VoiceOver, Reduce Motion) | Complete |
 | 19 | Dark mode pass | Complete |
 
-Steps 16 and 17 remain before public release evaluation. The following V1 clinical integrity requirements from the February 2026 clinical review must also be completed before release: red-flag symptom banner (D-18), "When to Seek Medical Care" static screen (D-18), "AI-powered" copy removal (D-19), `InsightsService.swift` threshold and label updates (D-20, D-21), Insights disclaimer and first-view interstitial (D-22, D-27), headache type inline disclaimer (D-24), gluten shortcut relabel (D-25). Step 18 (accessibility) and Step 19 (dark mode) were completed on 20 Feb 2026.
+Step 16 remains before public release evaluation. The following V1 clinical integrity requirements from the February 2026 clinical review must also be completed before release: red-flag symptom banner (D-18), "When to Seek Medical Care" static screen (D-18), "AI-powered" copy removal (D-19), `InsightsService.swift` threshold and label updates (D-20, D-21), Insights disclaimer and first-view interstitial (D-22, D-27), headache type inline disclaimer (D-24), gluten shortcut relabel (D-25). Step 18 (accessibility) and Step 19 (dark mode) were completed on 20 Feb 2026.
+
+The following items shipped at v1.8 (28 Feb 2026) — confirmed complete:
+- **Settings / Profile consolidation (D-46):** `SettingsView.swift` deleted. `ProfileView` restructured into four sections (PREFERENCES, SUBSCRIPTION, DATA, SUPPORT) in `ContentView.swift`. Gear icon and settings sheet removed from `HomeView`. "Patterns Found" stat removed from Profile header.
+- **Content audit — 28 P2/P3 copy fixes (commit `5e65c24`):** "This Month" → "Last 30 Days" everywhere (D-47). Active headache timer "so far" removed. Streak label updated. Medical disclaimer expanded with headache-specific care team language. Onboarding, permission copy, Insights labels, Export, History, LogDetail, Retrospective, and Profile copy updated. Full list in commit `5e65c24`.
+- **Clinical language fixes — 5 P1/P2 items, clinical advisor approved (D-50, D-51) (commit `41908b9`):** "Weather Trigger" → "Weather Association". Sleep insight "followed nights with" → "preceded by" + care team prompt. Onboarding "your personal triggers" → "associations you may not have noticed." InsightsView "Your Top Triggers" → "Frequently Logged Before Headaches." InsightsView "What's Working" → "Your Medication Ratings" + inline disclaimer. Static correlational disclaimer added below Quick Insights section on HomeView.
+- **Log detail read-mode visual refinement (D-49) (commit `cd2bae0`):** `RetroReadTagRow` pill/chip containers replaced with plain inline text joined by " · " separator. `RetroReadRow` layout changed from horizontal HStack to vertical VStack (12pt caption above, 13pt SemiBold value below). `RetroReadCard` header tracking 1.0 added, spacing 10→12pt.
+- **`auraeTextCaption` design system token (D-52) (commits `950dd66`, `be33c9e`):** New semantic color token defined in `Colors.swift`. 37 call sites migrated from `auraeMidGray` to `auraeTextCaption` across HistoryView, RetrospectiveView, OnboardingView, ExportView, LogConfirmationView, LifestyleSection, MedicationSection, EnvironmentSection, MedicalEscalationView, CalendarView, LogDetailView, InsightsView. Governance rule documented in Section 18.6.
+- **Canonical retrospective notes labels (D-48):** "Add notes" / "Edit notes" / "Your Notes" applied consistently across all notes entry points in `RetrospectiveView.swift`.
 
 The following additional implementation items were added at v1.5 (23 Feb 2026) and must also be completed before release:
 - **Red-flag banner placement correction (D-28):** Banner must appear on LogConfirmationView and HomeView (persistent while active) in addition to InsightsView. Requires updates to `LogConfirmationView.swift`, `HomeView.swift`, and `HomeViewModel.swift`.
@@ -919,7 +981,7 @@ Aurae
 
 ## 18. Brand Identity
 
-*Established at v1.7 (27 Feb 2026) following brand designer + design director sessions.*
+*Established at v1.7 (27 Feb 2026) following brand designer + design director sessions. Expanded at v1.8 (28 Feb 2026) with `auraeTextCaption` token (Section 18.6) and Profile/Settings consolidation (Section 18.7).*
 
 ### 18.1 Brand Mark — AuraeLogoMark
 
@@ -1017,6 +1079,66 @@ Aurae maintains two distinct gradient tokens with separate semantic roles. Mixin
 | `auraePrimaryGradient` | `#8AC4C1` → `#B6A6CA` | Premium/upgrade UI | Paywall hero, premium badge, upgrade CTA |
 
 The brand mark gradient uses the original Aurae teal (#2D7D7D) — a deeper, more saturated teal than the functional UI teal. The intentional distinction between these gradients should be preserved across all design iterations.
+
+### 18.6 Semantic Color Token — `auraeTextCaption`
+
+*Introduced at v1.8 (28 Feb 2026) by the Design System Expert. Commits `950dd66`, `be33c9e`.*
+
+#### Token Specification
+
+| Mode | Hex | Notes |
+|---|---|---|
+| Light | `#6B7280` | Identical to `auraeMidGray` light value — zero visual change in light mode at introduction |
+| Dark | `#9CAEBE` | Elevated from `auraeMidGray` dark value — improves WCAG AA compliance on Dark Matter surfaces |
+
+#### Governance Rule
+
+`auraeTextCaption` and `auraeMidGray` are now distinct tokens with distinct semantic roles. They must not be used interchangeably.
+
+| Token | Use | Must NOT be used for |
+|---|---|---|
+| `auraeTextCaption` | All caption and metadata text that a user must be able to read — timestamps, disclaimers, metadata labels, section subtitles, empty state copy | Decorative icons, chart fills, opacity-modified de-emphasis layers |
+| `auraeMidGray` | Decorative icons, chart fill colors, opacity-modified de-emphasis only (e.g. `auraeMidGray.opacity(0.4)` for ghosted elements) | Any text the user is expected to read |
+
+The rationale: on Dark Matter surfaces, `auraeMidGray` dark does not achieve WCAG AA contrast for readable text. `auraeTextCaption` was introduced to provide an accessible caption color without altering the decorative token. In light mode both tokens currently resolve to the same hex — this equivalence may diverge in future palette iterations, so the governance rule must be applied now to prevent future regressions.
+
+#### Migrated Call Sites (v1.8)
+
+37 call sites migrated from `auraeMidGray` to `auraeTextCaption` across the following files:
+
+- `HistoryView.swift`
+- `RetrospectiveView.swift`
+- `OnboardingView.swift`
+- `ExportView.swift`
+- `LogConfirmationView.swift`
+- `LifestyleSection.swift`
+- `MedicationSection.swift`
+- `EnvironmentSection.swift`
+- `MedicalEscalationView.swift`
+- `CalendarView.swift`
+- `LogDetailView.swift` (first-pass, earlier session)
+- `InsightsView.swift` (first-pass, earlier session)
+
+Any new caption or metadata text added to these or other files must use `auraeTextCaption`, not `auraeMidGray`.
+
+### 18.7 Profile / Settings Consolidation
+
+*Implemented at v1.8 (28 Feb 2026), commit `f3ef8e3`.*
+
+`SettingsView.swift` has been deleted. All settings content is now consolidated into `ProfileView` within `ContentView.swift`. The gear icon and settings sheet previously present on `HomeView` have been removed.
+
+**ProfileView section structure (four sections):**
+
+| Section | Contents |
+|---|---|
+| PREFERENCES | Notification delay (30 min / 1 hr / 2 hrs), unit preferences (°C/°F) |
+| SUBSCRIPTION | Subscription status, manage subscription, upgrade CTA for free users |
+| DATA | Export data (CSV/JSON, premium), delete all data |
+| SUPPORT | Help & FAQ (email link), When to Seek Medical Care (opens `MedicalEscalationView`), privacy policy |
+
+**Rationale:** A dedicated Settings tab was disproportionate to the settings surface area for a V1 app with no account infrastructure. Embedding settings within the Profile view follows established iOS patterns (Health, Strava, Headspace) and reduces tab bar complexity. The gear icon on HomeView was a navigation inconsistency — settings are now reached via a single canonical path (Profile tab).
+
+**"Patterns Found" stat removed:** The stat previously shown in the Profile header has been removed. It was derived from pattern-analysis data only available on the premium tier, making it misleading or empty for free users and adding clutter for premium users who can view the same information on the Insights tab.
 
 ---
 
