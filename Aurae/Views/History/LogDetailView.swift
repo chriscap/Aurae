@@ -161,10 +161,10 @@ struct LogDetailView: View {
             color = Color.auraeTealAccessible
         } else if let d = log.formattedDuration {
             text  = d
-            color = Color.auraeMidGray
+            color = Color.auraeTextCaption
         } else {
             text  = "Duration not recorded"
-            color = Color.auraeMidGray
+            color = Color.auraeTextCaption
         }
         return Text(text)
             .font(.auraeCaption)
@@ -222,7 +222,7 @@ struct LogDetailView: View {
 
             Text("Weather and health data was not captured for this entry. This can happen if location or Health access was unavailable at the time.")
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -272,7 +272,7 @@ struct LogDetailView: View {
 
             Text("No details added yet")
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
 
             // Secondary style so this CTA doesn't compete with the
             // primary "Mark as Resolved" action above. (REC-17)
@@ -292,7 +292,7 @@ struct LogDetailView: View {
 // MARK: - DetailSectionHeader
 // =============================================================================
 
-/// Uppercase section label in auraeLabel / auraeMidGray used throughout
+/// Uppercase section label in auraeLabel / auraeTextCaption used throughout
 /// the detail view. Matches the design spec for section headers.
 struct DetailSectionHeader: View {
     let title: String
@@ -300,7 +300,7 @@ struct DetailSectionHeader: View {
     var body: some View {
         Text(title)
             .font(.auraeLabel)
-            .foregroundStyle(Color.auraeMidGray)
+            .foregroundStyle(Color.auraeTextCaption)
             // Slightly expanded tracking makes all-caps section labels more
             // readable without relying on point-size increases. (REC-15)
             .tracking(1.0)
@@ -473,7 +473,7 @@ private struct WeatherMetricCell: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                 Text(value)
                     .font(.auraeLabel)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
@@ -582,10 +582,10 @@ private struct HealthMetricCell: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                 Text(value ?? "—")
                     .font(.auraeLabel)
-                    .foregroundStyle(value != nil ? Color.auraeAdaptivePrimaryText : Color.auraeMidGray)
+                    .foregroundStyle(value != nil ? Color.auraeAdaptivePrimaryText : Color.auraeTextCaption)
             }
         }
         .accessibilityElement(children: .combine)
@@ -831,7 +831,7 @@ private struct RetroReadCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.auraeLabel)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .tracking(1.0)
                 .accessibilityAddTraits(.isHeader)
 
@@ -864,7 +864,7 @@ private struct RetroReadRow: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
 
             Text(value)
                 .font(.auraeLabel)
@@ -887,7 +887,7 @@ private struct RetroReadStars: View {
         HStack(alignment: .center) {
             Text(label)
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .frame(minWidth: 100, alignment: .leading)
 
             HStack(spacing: 3) {
@@ -902,7 +902,7 @@ private struct RetroReadStars: View {
                 }
                 Text("\(rating)/5")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .padding(.leading, 4)
             }
             Spacer()

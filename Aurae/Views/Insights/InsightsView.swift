@@ -148,7 +148,7 @@ struct InsightsView: View {
                     .tint(Color.auraePrimary)
                 Text("Analyzing your patterns…")
                     .font(.auraeBody)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             }
         } else if !viewModel.minimumLogsMet {
             keepLoggingView
@@ -201,7 +201,7 @@ struct InsightsView: View {
 
                 Text("Aurae Pro surfaces the patterns in your logged data — associations you may not have noticed on your own.")
                     .font(.auraeBody)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Layout.screenPadding)
 
@@ -371,7 +371,7 @@ struct InsightsView: View {
 
             Text(remainingText)
                 .font(.auraeBody)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Layout.screenPadding * 2)
 
@@ -404,7 +404,7 @@ struct InsightsView: View {
                     Spacer()
                     Text("\(InsightsService.minimumLogs) to unlock")
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                 }
             }
             .padding(.horizontal, Layout.screenPadding * 2)
@@ -563,7 +563,7 @@ extension InsightsView {
             if report.mostCommonTriggers.isEmpty {
                 Text("Log retrospective data to see your pattern associations.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             } else {
                 VStack(spacing: 10) {
                     let maxCount = report.mostCommonTriggers.first?.count ?? 1
@@ -580,7 +580,7 @@ extension InsightsView {
                 // These patterns are associative, not causal or confirmed.
                 Text("These patterns reflect associations in your logged data. They are not confirmed triggers and may change as you log more episodes. Share them with your care team to explore what they mean for you.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4)
@@ -601,7 +601,7 @@ extension InsightsView {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Day of week")
                         .font(.auraeLabel)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
 
                     HStack(spacing: 6) {
                         ForEach(1...7, id: \.self) { wd in
@@ -617,7 +617,7 @@ extension InsightsView {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Time of day")
                         .font(.auraeLabel)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
 
                     VStack(spacing: 8) {
                         ForEach(TimeOfDay.allCases, id: \.self) { tod in
@@ -677,13 +677,13 @@ extension InsightsView {
 
                     Text(sc.insight)
                         .font(.auraeCaption)
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                         .lineSpacing(3)
                 }
             } else {
                 Text("Sleep data will appear here once you've logged sleep hours in a few retrospective entries.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             }
         }
     }
@@ -703,7 +703,7 @@ extension InsightsView {
                 // Effectiveness ratings are user-reported subjective assessments only.
                 Text("These ratings reflect your personal logged experiences only. Discuss medication decisions with your healthcare provider.")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .lineSpacing(2)
                     .padding(.top, AuraeSpacing.xxs)
             }
@@ -814,7 +814,7 @@ private struct StatCard: View {
 
             Text(label)
                 .font(.auraeMetricUnit)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -876,7 +876,7 @@ private struct TriggerBarRow: View {
             Text("\(count)")
                 .font(.auraeCaption)
                 .monospacedDigit()
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .frame(width: 24, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)
@@ -896,7 +896,7 @@ private struct WeekdayCell: View {
     }
 
     private var foregroundColor: Color {
-        guard let s = severity else { return Color.auraeMidGray }
+        guard let s = severity else { return Color.auraeTextCaption }
         return Color.severityAccent(for: Int(s.rounded()))
     }
 
@@ -904,7 +904,7 @@ private struct WeekdayCell: View {
         VStack(spacing: 4) {
             Text(label)
                 .font(.jakarta(11, weight: .semibold, relativeTo: .caption2))
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
 
             ZStack {
                 // Decorative background — colour encodes severity level, text carries value.
@@ -920,7 +920,7 @@ private struct WeekdayCell: View {
                 } else {
                     Text("—")
                         .font(.jakarta(11))
-                        .foregroundStyle(Color.auraeMidGray)
+                        .foregroundStyle(Color.auraeTextCaption)
                 }
             }
         }
@@ -958,11 +958,11 @@ private struct TimeOfDayRow: View {
 
                 Text(String(format: "%.1f avg", s))
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             } else {
                 Text("No data")
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
             }
 
             Spacer(minLength: 0)
@@ -1008,7 +1008,7 @@ private struct WeatherCorrelationRow: View {
 
                 Text(correlation.description)
                     .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeMidGray)
+                    .foregroundStyle(Color.auraeTextCaption)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -1035,7 +1035,7 @@ private struct SleepStatTile: View {
                 .foregroundStyle(color)
             Text(label)
                 .font(.auraeMetricUnit)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -1082,7 +1082,7 @@ private struct MedicationRow: View {
 
             Text(String(format: "%.1f", avgEffectiveness))
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
                 .frame(width: 26, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)

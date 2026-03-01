@@ -108,9 +108,29 @@ extension Color {
     })
 
     /// Muted metadata. Light: #6B7280  Dark: #8A9BAD
+    /// Use for non-text decorative roles only: icon fills, chart gridlines, separators,
+    /// opacity-modified de-emphasis treatments. For caption/label TEXT use auraeTextCaption.
     static let auraeMidGray = Color(UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(hex: "8A9BAD") : UIColor(hex: "6B7280")
+    })
+
+    /// Caption / label text.
+    /// Light: #6B7280  Dark: #9CAEBE
+    ///
+    /// Use for ALL text rendered in secondary/muted roles at caption and label sizes
+    /// (auraeCaption 12pt, auraeLabel 13pt, auraeFootnote 13pt, auraeMetricUnit 15pt,
+    /// auraeSectionLabel 17pt, and equivalents). Passes WCAG 2.1 AA (4.5:1) on all
+    /// current Aurae surfaces:
+    ///   Dark #9CAEBE on card  #1A2332 → 6.92:1
+    ///   Dark #9CAEBE on bg    #121B28 → 7.59:1
+    ///   Light #6B7280 on card #FFFFFF → 4.83:1
+    ///   Light #6B7280 on bg   #FAFBFC → 4.67:1
+    ///
+    /// Do NOT use for decorative non-text elements — use auraeMidGray for those.
+    static let auraeTextCaption = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(hex: "9CAEBE") : UIColor(hex: "6B7280")
     })
 
     /// Border / stroke color. Light: #5B8EBF @20%  Dark: #6FA8DC @15%

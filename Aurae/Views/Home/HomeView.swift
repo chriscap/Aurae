@@ -487,7 +487,7 @@ struct HomeView: View {
                                 .foregroundStyle(Color.auraeAdaptivePrimaryText)
                             Text("Started \(log.onsetTime.formatted(date: .omitted, time: .shortened))")
                                 .font(.auraeCaption)
-                                .foregroundStyle(Color.auraeMidGray)
+                                .foregroundStyle(Color.auraeTextCaption)
                         }
                         Spacer()
                         Text(log.severityLevel.label)
@@ -509,7 +509,7 @@ struct HomeView: View {
                         }()
                         Text(text)
                             .font(.auraeCaption)
-                            .foregroundStyle(Color.auraeMidGray)
+                            .foregroundStyle(Color.auraeTextCaption)
                     }
                 }
                 .padding(Layout.cardPadding)
@@ -552,7 +552,7 @@ struct HomeView: View {
                 .accessibilityHidden(true)
             Text(message)
                 .font(.auraeCaption)
-                .foregroundStyle(Color.auraeMidGray)
+                .foregroundStyle(Color.auraeTextCaption)
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
