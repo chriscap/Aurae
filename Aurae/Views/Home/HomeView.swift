@@ -34,6 +34,8 @@ struct HomeView: View {
             ZStack {
                 Color.auraeAdaptiveBackground.ignoresSafeArea()
 
+                brandWatermark
+
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         headerSection
@@ -54,6 +56,10 @@ struct HomeView: View {
                             )
                             .padding(.top, AuraeSpacing.sm)
                         }
+
+                        // Ambient context card — shows weather conditions at last log
+                        ambientContextCard
+                            .padding(.top, AuraeSpacing.lg)
 
                         // Informational sections — always visible, empty states when no data
                         thisMonthSection
@@ -136,6 +142,88 @@ struct HomeView: View {
         }
         .frame(width: 36, height: 36)
         .accessibilityLabel("Profile: \(userDisplayName.isEmpty ? "Set your name in Profile" : userDisplayName)")
+    }
+
+    // MARK: - Brand watermark
+
+    /// Ghosted "A" mark in the top-right background layer.
+    /// Purely decorative — sits beneath all content and absorbs no input.
+    private var brandWatermark: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Text("A")
+                    .font(.fraunces(200, weight: .bold))
+                    .foregroundStyle(Color.auraeAdaptivePrimaryText.opacity(0.04))
+                    .offset(x: 44, y: -24)
+                    .accessibilityHidden(true)
+            }
+            Spacer()
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - Ambient context card
+
+    /// Shows weather conditions captured at the most recent log.
+    /// Hidden when no weather data is available.
+    @ViewBuilder
+    private var ambientContextCard: some View {
+        if let w = viewModel.lastLogWeather {
+            HStack(spacing: 14) {
+                Image(systemName: weatherIconName(for: w.condition))
+                    .font(.system(size: 24))
+                    .foregroundStyle(Color.auraeTeal)
+                    .frame(width: 32)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(Int(w.temperature))° · \(w.condition.replacingOccurrences(of: "_", with: " ").capitalized)")
+                        .font(.auraeCalloutBold)
+                        .foregroundStyle(Color.auraeAdaptivePrimaryText)
+                    Text("Conditions at last log")
+                        .font(.auraeCaption)
+                        .foregroundStyle(Color.auraeTextCaption)
+                }
+
+                Spacer()
+
+                if w.pressureTrend != "stable" {
+                    VStack(alignment: .center, spacing: 2) {
+                        Image(systemName: w.pressureTrend == "rising" ? "arrow.up" : "arrow.down")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.auraeTextCaption)
+                        Text("Pressure")
+                            .font(.auraeCaption)
+                            .foregroundStyle(Color.auraeTextCaption)
+                    }
+                    .accessibilityLabel("Pressure \(w.pressureTrend)")
+                }
+            }
+            .padding(Layout.cardPadding)
+            .background(Color.auraeAdaptiveCard)
+            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
+                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
+            )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Last log conditions: \(Int(w.temperature)) degrees, \(w.condition.replacingOccurrences(of: "_", with: " "))")
+        }
+    }
+
+    private func weatherIconName(for condition: String) -> String {
+        switch condition.lowercased() {
+        case "clear", "sunny":       return "sun.max.fill"
+        case "partly_cloudy":        return "cloud.sun.fill"
+        case "cloudy", "overcast":   return "cloud.fill"
+        case "rain", "drizzle":      return "cloud.rain.fill"
+        case "snow":                 return "cloud.snow.fill"
+        case "storm":                return "cloud.bolt.fill"
+        case "fog", "mist":          return "cloud.fog.fill"
+        default:                     return "cloud.fill"
+        }
     }
 
     // MARK: - Log or active headache card

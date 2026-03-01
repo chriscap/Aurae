@@ -106,7 +106,7 @@ struct LogHeadacheModal: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color.auraeMidGray)
                     .accessibilityHidden(true)
-                Text("How intense is it?")
+                Text("How are you feeling?")
                     .font(.auraeHeadline)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
             }
