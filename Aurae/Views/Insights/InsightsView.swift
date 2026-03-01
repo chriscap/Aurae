@@ -522,8 +522,8 @@ extension InsightsView {
                     iconColor: .auraePrimary
                 )
                 StatCard(
-                    value: String(format: "%.1f", report.averageSeverity),
-                    label: "Avg severity",
+                    value: report.mostCommonSeverityLabel,
+                    label: "Most common",
                     icon: "gauge.medium",
                     iconColor: Color.severityAccent(for: Int(report.averageSeverity.rounded()))
                 )

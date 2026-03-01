@@ -319,6 +319,13 @@ extension InsightsService {
             freq[d, default: 0] += 1
         }
 
+        // Severity distribution (categorical counts per level)
+        var sevDist: [Int: Int] = [1: 0, 3: 0, 5: 0]
+        for s in snapshots {
+            let level = SeverityLevel(rawValue: max(1, min(5, s.severity))) ?? .moderate
+            sevDist[level.rawValue, default: 0] += 1
+        }
+
         return InsightsReport(
             minimumLogsRequired: Self.minimumLogs,
             totalLogs:           snapshots.count,
@@ -332,7 +339,8 @@ extension InsightsService {
             weatherCorrelations: weatherCorrelations,
             sleepCorrelation:    sleepCorr,
             medicationEffectiveness: medEffectiveness,
-            headacheFrequency:   freq
+            headacheFrequency:   freq,
+            severityDistribution: sevDist
         )
     }
     // swiftlint:enable function_body_length

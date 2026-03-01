@@ -130,6 +130,17 @@ struct InsightsReport: Sendable {
     /// Key = start of day (midnight), value = number of logs that day.
     let headacheFrequency: [Date: Int]
 
+    /// Count of logs per severity level. Keys are SeverityLevel raw values (1, 3, 5).
+    /// Supports categorical frequency display (clinical requirement D-53).
+    let severityDistribution: [Int: Int]
+
+    /// Label of the most frequently logged severity level.
+    var mostCommonSeverityLabel: String {
+        guard let entry = severityDistribution.max(by: { $0.value < $1.value }),
+              entry.value > 0 else { return "—" }
+        return SeverityLevel(rawValue: entry.key)?.label ?? "—"
+    }
+
     // Empty report — shown when totalLogs < minimumLogsRequired
     static func empty(totalLogs: Int, minimum: Int) -> InsightsReport {
         InsightsReport(
@@ -145,7 +156,8 @@ struct InsightsReport: Sendable {
             weatherCorrelations: [],
             sleepCorrelation: nil,
             medicationEffectiveness: [],
-            headacheFrequency: [:]
+            headacheFrequency: [:],
+            severityDistribution: [:]
         )
     }
 }
@@ -252,7 +264,8 @@ struct InsightsService {
             weatherCorrelations:      weatherCorrelations(logs: logs),
             sleepCorrelation:         sleepCorrelation(logs: logs),
             medicationEffectiveness:  medicationEffectiveness(logs: logs),
-            headacheFrequency:        headacheFrequency(logs: logs)
+            headacheFrequency:        headacheFrequency(logs: logs),
+            severityDistribution:     severityDistribution(logs: logs)
         )
     }
 
@@ -261,6 +274,16 @@ struct InsightsService {
     private func averageSeverity(logs: [HeadacheLog]) -> Double {
         guard !logs.isEmpty else { return 0 }
         return Double(logs.map(\.severity).reduce(0, +)) / Double(logs.count)
+    }
+
+    /// Returns a count of logs per SeverityLevel raw value (1, 3, 5).
+    private func severityDistribution(logs: [HeadacheLog]) -> [Int: Int] {
+        var dist: [Int: Int] = [1: 0, 3: 0, 5: 0]
+        for log in logs {
+            let level = log.severityLevel
+            dist[level.rawValue, default: 0] += 1
+        }
+        return dist
     }
 
     // MARK: - Duration

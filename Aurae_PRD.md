@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Document Type** | Product Requirements Document (PRD) |
-| **Version** | 1.8 — In Development |
+| **Version** | 1.9 — In Development |
 | **Date** | February 2026 (updated 28 Feb 2026) |
 | **Platform** | iOS (iPhone-first) |
 | **Stage** | In Development |
@@ -891,6 +891,9 @@ Steps are as defined in `CLAUDE.md`. Status as of 28 Feb 2026.
 
 Step 16 remains before public release evaluation. The following V1 clinical integrity requirements from the February 2026 clinical review must also be completed before release: red-flag symptom banner (D-18), "When to Seek Medical Care" static screen (D-18), "AI-powered" copy removal (D-19), `InsightsService.swift` threshold and label updates (D-20, D-21), Insights disclaimer and first-view interstitial (D-22, D-27), headache type inline disclaimer (D-24), gluten shortcut relabel (D-25). Step 18 (accessibility) and Step 19 (dark mode) were completed on 20 Feb 2026.
 
+The following items shipped at v1.9 (28 Feb 2026) — confirmed complete:
+- **Severity scale reduction to 3 levels (D-53):** `SeverityLevel` enum reduced from 5 cases to 3 (Mild=1 / Moderate=3 / Severe=5). Raw values use 1/3/5 to preserve `InsightsService` thresholds (`severity >= 4` = bad days, `severity <= 2` = good days). Behavioral anchors added to each card in `SeveritySelector.swift`. One-time SwiftData migration (2→3, 4→5) runs on first launch, guarded by `UserDefaults` flag `severityMigrationV2Complete`. `InsightsReport` gains `severityDistribution: [Int: Int]` for categorical frequency display. InsightsView "Avg severity" stat card → "Most common" label. `PDFExportService.makeSeverityBars` updated to use actual distribution counts. PM decision: YES — aligns with PRD spec (which already specified 3 levels); corrects 2026-02-25 spec violation. Clinical Advisor: conditional approval, 4 safeguards implemented.
+
 The following items shipped at v1.8 (28 Feb 2026) — confirmed complete:
 - **Settings / Profile consolidation (D-46):** `SettingsView.swift` deleted. `ProfileView` restructured into four sections (PREFERENCES, SUBSCRIPTION, DATA, SUPPORT) in `ContentView.swift`. Gear icon and settings sheet removed from `HomeView`. "Patterns Found" stat removed from Profile header.
 - **Content audit — 28 P2/P3 copy fixes (commit `5e65c24`):** "This Month" → "Last 30 Days" everywhere (D-47). Active headache timer "so far" removed. Streak label updated. Medical disclaimer expanded with headache-specific care team language. Onboarding, permission copy, Insights labels, Export, History, LogDetail, Retrospective, and Profile copy updated. Full list in commit `5e65c24`.
@@ -898,6 +901,7 @@ The following items shipped at v1.8 (28 Feb 2026) — confirmed complete:
 - **Log detail read-mode visual refinement (D-49) (commit `cd2bae0`):** `RetroReadTagRow` pill/chip containers replaced with plain inline text joined by " · " separator. `RetroReadRow` layout changed from horizontal HStack to vertical VStack (12pt caption above, 13pt SemiBold value below). `RetroReadCard` header tracking 1.0 added, spacing 10→12pt.
 - **`auraeTextCaption` design system token (D-52) (commits `950dd66`, `be33c9e`):** New semantic color token defined in `Colors.swift`. 37 call sites migrated from `auraeMidGray` to `auraeTextCaption` across HistoryView, RetrospectiveView, OnboardingView, ExportView, LogConfirmationView, LifestyleSection, MedicationSection, EnvironmentSection, MedicalEscalationView, CalendarView, LogDetailView, InsightsView. Governance rule documented in Section 18.6.
 - **Canonical retrospective notes labels (D-48):** "Add notes" / "Edit notes" / "Your Notes" applied consistently across all notes entry points in `RetrospectiveView.swift`.
+- **Severity scale reduced from 5 to 3 levels (D-53):** PRD already specified 3 levels (Mild / Moderate / Severe); 5-level `SeveritySelector.swift` (introduced 2026-02-25) was a spec violation. Integer mapping 1/3/5 preserves `InsightsService` thresholds without code changes. Migration: severity 2 → 3, severity 4 → 5. Labels "Light" (2) and "Extreme" (5) had no ICHD-3 basis and are removed. Behavioral anchors added per clinical advisor requirement (D-53): "Noticeable but does not limit my activity" / "Limits some of my usual activities" / "Prevents me from doing my usual activities." Clinical Advisor conditional approval granted; 4 safeguards: (1) behavioral anchors visible at logging time ✓, (2) red-flag escalation fires before severity selection (existing `onsetSpeed` instantaneous banner satisfies this), (3) severity shown as categorical distribution in InsightsView ✓, (4) "Severe" copy does not imply routine/self-manageable ✓.
 
 The following additional implementation items were added at v1.5 (23 Feb 2026) and must also be completed before release:
 - **Red-flag banner placement correction (D-28):** Banner must appear on LogConfirmationView and HomeView (persistent while active) in addition to InsightsView. Requires updates to `LogConfirmationView.swift`, `HomeView.swift`, and `HomeViewModel.swift`.

@@ -2,13 +2,19 @@
 //  SeveritySelector.swift
 //  Aurae
 //
-//  Expanded 2026-02-25 to 5-level severity scale:
-//  Mild / Light / Moderate / Severe / Extreme
+//  Three-level severity scale: Mild / Moderate / Severe.
 //
-//  Renders as a vertical list of selection cards, matching the Figma log modal
-//  design. Each card shows a color dot + severity label. Selected card gets a
-//  blue border and accent background; unselected cards have a standard card
-//  background with a subtle border.
+//  Integer values are 1 / 3 / 5 (skipping 2 and 4) to preserve the
+//  InsightsService thresholds:  severity >= 4 = "bad days",
+//                               severity <= 2 = "good days".
+//
+//  Reduced from 5 to 3 levels 2026-02-28 per PM decision (D-53) and
+//  Clinical Advisor conditional approval. The prior "Light" (2) and
+//  "Extreme" (5) labels had no validated clinical basis. "Mild / Moderate
+//  / Severe" aligns with ICHD-3 vocabulary.
+//
+//  Each card shows a functional behavioral anchor below the label (clinical
+//  requirement: reduces subjective variability across logging events).
 //
 //  Usage:
 //  ```swift
@@ -21,23 +27,29 @@ import SwiftUI
 
 // MARK: - Severity level model
 
-/// Five-level severity scale used throughout the app.
+/// Three-level severity scale. Raw values 1/3/5 preserve InsightsService thresholds.
 enum SeverityLevel: Int, CaseIterable, Identifiable {
     case mild     = 1
-    case light    = 2
     case moderate = 3
-    case severe   = 4
-    case extreme  = 5
+    case severe   = 5
 
     var id: Int { rawValue }
 
     var label: String {
         switch self {
         case .mild:     return "Mild"
-        case .light:    return "Light"
         case .moderate: return "Moderate"
         case .severe:   return "Severe"
-        case .extreme:  return "Extreme"
+        }
+    }
+
+    /// Functional behavioral anchor shown below the label at logging time.
+    /// Derived from MIDAS/ICHD-3 functional disability framing (D-53).
+    var behavioralAnchor: String {
+        switch self {
+        case .mild:     return "Noticeable but does not limit my activity"
+        case .moderate: return "Limits some of my usual activities"
+        case .severe:   return "Prevents me from doing my usual activities"
         }
     }
 
@@ -47,7 +59,7 @@ enum SeverityLevel: Int, CaseIterable, Identifiable {
     /// Pill fill color for compact pill-style selectors.
     var pillFill: Color { Color.severityPillFill(for: rawValue) }
 
-    var accessibilityLabel: String { label }
+    var accessibilityLabel: String { "\(label). \(behavioralAnchor)" }
 }
 
 // MARK: - SeveritySelector (card style — for log modal)
@@ -100,14 +112,22 @@ struct SeveritySelector: View {
             HStack(spacing: AuraeSpacing.md) {
                 Circle()
                     .fill(level.color)
-                    .frame(width: 16, height: 16)
+                    .frame(width: 14, height: 14)
                     .accessibilityHidden(true)
 
-                Text(level.label)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(isSelected
-                        ? Color.auraePrimary
-                        : Color.auraeAdaptivePrimaryText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(level.label)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(isSelected
+                            ? Color.auraePrimary
+                            : Color.auraeAdaptivePrimaryText)
+                    Text(level.behavioralAnchor)
+                        .font(.system(size: 12))
+                        .foregroundStyle(isSelected
+                            ? Color.auraePrimary.opacity(0.75)
+                            : Color.auraeTextCaption)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
                 Spacer()
 
@@ -118,7 +138,8 @@ struct SeveritySelector: View {
                 }
             }
             .padding(.horizontal, AuraeSpacing.md)
-            .frame(height: 64)
+            .padding(.vertical, 12)
+            .frame(minHeight: 64)
             .background(isSelected ? Color.auraeAccent : Color.auraeAdaptiveCard)
             .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
             .overlay(

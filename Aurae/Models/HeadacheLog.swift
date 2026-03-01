@@ -47,8 +47,11 @@ final class HeadacheLog {
     /// When the headache ended. Nil while the headache is still active.
     var resolvedTime: Date?
 
-    /// Severity on a 1–5 scale (1 = Mild, 5 = Worst).
-    /// Default is 3 (Moderate) when the user taps without adjusting the selector.
+    /// Severity using the 1/3/5 three-level scale:
+    ///   1 = Mild, 3 = Moderate, 5 = Severe (D-53, 2026-02-28).
+    /// Values 2 and 4 are legacy; one-time migration converts them to 3 and 5
+    /// respectively on first launch after this version.
+    /// Default is 3 (Moderate).
     var severity: Int
 
     /// True while the headache episode is ongoing (resolvedTime == nil).

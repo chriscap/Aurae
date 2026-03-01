@@ -107,6 +107,7 @@ private struct RootView: View {
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("darkModePreference") private var darkModePreference: String = "system"
+    @Environment(\.modelContext) private var modelContext
 
     private var preferredColorScheme: ColorScheme? {
         switch darkModePreference {
@@ -144,6 +145,35 @@ private struct RootView: View {
                     hasCompletedOnboarding = true
                 }
             }
+            .task {
+                runSeverityMigrationV2IfNeeded()
+            }
+    }
+
+    /// One-time migration: maps legacy severity values 2 → 3 (Light → Moderate)
+    /// and 4 → 5 (legacy Severe → Severe) to align with the 1/3/5 three-level
+    /// scale introduced in D-53 (2026-02-28).
+    /// Guarded by a UserDefaults flag so it runs exactly once.
+    private func runSeverityMigrationV2IfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: "severityMigrationV2Complete") else { return }
+
+        let descriptor = FetchDescriptor<HeadacheLog>()
+        guard let logs = try? modelContext.fetch(descriptor) else { return }
+
+        var migrated = false
+        for log in logs {
+            if log.severity == 2 {
+                log.severity = 3   // Light → Moderate
+                migrated = true
+            } else if log.severity == 4 {
+                log.severity = 5   // legacy Severe → Severe
+                migrated = true
+            }
+        }
+
+        if migrated { try? modelContext.save() }
+        defaults.set(true, forKey: "severityMigrationV2Complete")
     }
 }
 

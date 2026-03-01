@@ -532,8 +532,8 @@ final class PDFExportService: Sendable {
         // For the bars we compute approximate counts using average severities
         // as weights (display only — no clinical claims).
         let severityBars = makeSeverityBars(
-            totalLogs: totalLogs,
-            averageSeverity: report.averageSeverity
+            distribution: report.severityDistribution,
+            totalLogs: totalLogs
         )
 
         // Medication
@@ -596,32 +596,24 @@ final class PDFExportService: Sendable {
         }
     }
 
-    private func makeSeverityBars(totalLogs: Int, averageSeverity: Double) -> [TriggerSummary.SeverityBar] {
-        // Derive an approximate bell-curve distribution centred on averageSeverity.
-        // This is a visual approximation for display purposes only.
-        let hexColors = ["5A9E9A", "7ABAB7", "8A7AB8", "9B6CA8", "C47A7A"]
-        let avg = max(1.0, min(5.0, averageSeverity))
-
-        // Gaussian weights centred at avg, sigma=1
-        let weights: [Double] = (1...5).map { level in
-            let diff = Double(level) - avg
-            return exp(-0.5 * diff * diff)
-        }
-        let totalWeight = weights.reduce(0, +)
-
-        var bars: [TriggerSummary.SeverityBar] = []
-        let maxWeight = weights.max() ?? 1
-        for level in 1...5 {
-            let w = weights[level - 1]
-            let count = totalWeight > 0 ? Int((w / totalWeight) * Double(totalLogs)) : 0
-            bars.append(TriggerSummary.SeverityBar(
-                level: level,
+    private func makeSeverityBars(distribution: [Int: Int], totalLogs: Int) -> [TriggerSummary.SeverityBar] {
+        // Use actual logged severity counts (Mild=1, Moderate=3, Severe=5).
+        // Only the three valid levels are shown; colours mapped by level index.
+        let levels: [(rawValue: Int, hexColor: String)] = [
+            (1, "5A9E9A"),  // Mild — muted teal
+            (3, "8A7AB8"),  // Moderate — muted violet
+            (5, "C47A7A"),  // Severe — muted rose
+        ]
+        let maxCount = distribution.values.max().flatMap { $0 > 0 ? $0 : nil } ?? 1
+        return levels.map { entry in
+            let count = distribution[entry.rawValue] ?? 0
+            return TriggerSummary.SeverityBar(
+                level: entry.rawValue,
                 count: count,
-                fraction: maxWeight > 0 ? w / maxWeight : 0,
-                hexColor: hexColors[level - 1]
-            ))
+                fraction: Double(count) / Double(maxCount),
+                hexColor: entry.hexColor
+            )
         }
-        return bars
     }
 
     // MARK: - Header metadata extraction
