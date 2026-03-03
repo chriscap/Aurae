@@ -154,14 +154,35 @@ struct HomeView: View {
     // MARK: - Brand watermark
 
     /// Ghosted logo mark in the top-right background layer.
-    /// Purely decorative — sits beneath all content and absorbs no input.
+    /// Rendered with explicit per-ring opacities rather than the global
+    /// AuraeLogoMark opacity parameter — which would compound against each
+    /// ring's internal opacity and wash out the teal→violet gradient.
+    /// Inner core at 35% ensures the gradient colours read clearly.
     private var brandWatermark: some View {
-        VStack {
+        let size: CGFloat = 200
+        return VStack {
             HStack {
                 Spacer()
-                AuraeLogoMark(markSize: 160, ringCount: 3, opacity: 0.09)
-                    .offset(x: 44, y: -20)
-                    .accessibilityHidden(true)
+                ZStack {
+                    // Outer ring — soft halo edge
+                    Ellipse()
+                        .fill(Color.auraeMarkGradient)
+                        .frame(width: size, height: size)
+                        .opacity(0.05)
+                    // Middle ring — transition band
+                    Ellipse()
+                        .fill(Color.auraeMarkGradient)
+                        .frame(width: size * 0.71, height: size * 0.71)
+                        .opacity(0.12)
+                    // Inner core — full gradient presence
+                    Ellipse()
+                        .fill(Color.auraeMarkGradient)
+                        .frame(width: size * 0.41, height: size * 0.41)
+                        .opacity(0.24)
+                }
+                .frame(width: size, height: size)
+                .offset(x: 40, y: -16)
+                .accessibilityHidden(true)
             }
             Spacer()
         }

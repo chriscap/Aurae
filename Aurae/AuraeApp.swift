@@ -151,11 +151,21 @@ private struct RootView: View {
                 .task {
                     runSeverityMigrationV2IfNeeded()
                 }
+                // Cross-fade the home screen in as the launch overlay exits.
+                // Both sides use the same .easeInOut(0.4) so opacity curves mirror.
+                .opacity(showLaunchOverlay ? 0 : 1)
+                .animation(.easeInOut(duration: 0.4), value: showLaunchOverlay)
 
             if showLaunchOverlay {
                 LaunchOverlayView {
-                    showLaunchOverlay = false
+                    // Animate both sides in the same transaction:
+                    // overlay exits via .transition(.opacity), ContentView
+                    // fades in via its .animation modifier — true cross-fade.
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        showLaunchOverlay = false
+                    }
                 }
+                .transition(.opacity)
                 .zIndex(100)
             }
         }
