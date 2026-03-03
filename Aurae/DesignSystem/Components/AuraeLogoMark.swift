@@ -76,7 +76,10 @@ struct AuraeLogoLockup: View {
         HStack(spacing: spacing) {
             AuraeLogoMark(markSize: markSize, ringCount: ringCount, opacity: opacity)
             Text("aurae")
-                .font(.system(size: wordmarkSize, weight: .semibold, design: .default))
+                // DMSerifDisplay-Regular used directly here regardless of size —
+                // this is a brand identity element, not UI hierarchy text.
+                .font(.custom("DMSerifDisplay-Regular", size: wordmarkSize))
+                .tracking(wordmarkSize * 0.10)
                 .foregroundStyle(wordmarkColor)
         }
         .accessibilityElement(children: .ignore)

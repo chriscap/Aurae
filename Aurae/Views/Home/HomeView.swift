@@ -159,7 +159,7 @@ struct HomeView: View {
         VStack {
             HStack {
                 Spacer()
-                AuraeLogoMark(markSize: 160, ringCount: 3, opacity: 0.05)
+                AuraeLogoMark(markSize: 160, ringCount: 3, opacity: 0.09)
                     .offset(x: 44, y: -20)
                     .accessibilityHidden(true)
             }
