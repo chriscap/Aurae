@@ -203,11 +203,8 @@ struct HomeView: View {
             }
             .padding(Layout.cardPadding)
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
-            )
+            .clipShape(Rectangle())
+            .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Last log conditions: \(Int(w.temperature)) degrees, \(w.condition.replacingOccurrences(of: "_", with: " "))")
         }
@@ -313,11 +310,8 @@ struct HomeView: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity)
         .background(Color.auraePrimary.opacity(0.10))
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                .strokeBorder(Color.auraePrimary.opacity(0.20), lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraePrimary.opacity(0.20), lineWidth: 1))
         .accessibilityLabel("\(days) \(days == 1 ? "day" : "days") headache-free")
     }
 
@@ -366,11 +360,8 @@ struct HomeView: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
     }
 
     // MARK: - Quick Insights
@@ -397,11 +388,8 @@ struct HomeView: View {
                     .padding(Layout.cardPadding)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.auraeAdaptiveCard)
-                    .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                            .strokeBorder(Color.auraeBorder, lineWidth: 1)
-                    )
+                    .clipShape(Rectangle())
+                    .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
             } else {
                 ForEach(insights, id: \.title) { insight in
                     insightCard(icon: insight.icon, title: insight.title, description: insight.description)
@@ -441,11 +429,8 @@ struct HomeView: View {
         }
         .padding(AuraeSpacing.md)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
     }
 
     // Derive top 2 insight strings from log data
@@ -506,11 +491,8 @@ struct HomeView: View {
                 .padding(Layout.cardPadding)
                 .frame(maxWidth: .infinity)
                 .background(Color.auraeAdaptiveCard)
-                .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                        .strokeBorder(Color.auraeBorder, lineWidth: 1)
-                )
+                .clipShape(Rectangle())
+                .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
             } else {
                 VStack(spacing: AuraeSpacing.sm) {
                     ForEach(recent) { log in
@@ -542,11 +524,8 @@ struct HomeView: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.xs, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 
@@ -645,7 +624,7 @@ struct HomeView: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.sm, style: .continuous))
+        .clipShape(Rectangle())
     }
 
     // MARK: - Red flag helpers

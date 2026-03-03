@@ -109,6 +109,8 @@ private struct RootView: View {
     @AppStorage("darkModePreference") private var darkModePreference: String = "system"
     @Environment(\.modelContext) private var modelContext
 
+    @State private var showLaunchOverlay = true
+
     private var preferredColorScheme: ColorScheme? {
         switch darkModePreference {
         case "light": return .light
@@ -138,16 +140,25 @@ private struct RootView: View {
     }
 
     var body: some View {
-        ContentView()
-            .preferredColorScheme(preferredColorScheme)
-            .fullScreenCover(isPresented: showOnboarding) {
-                OnboardingView {
-                    hasCompletedOnboarding = true
+        ZStack {
+            ContentView()
+                .preferredColorScheme(preferredColorScheme)
+                .fullScreenCover(isPresented: showOnboarding) {
+                    OnboardingView {
+                        hasCompletedOnboarding = true
+                    }
                 }
+                .task {
+                    runSeverityMigrationV2IfNeeded()
+                }
+
+            if showLaunchOverlay {
+                LaunchOverlayView {
+                    showLaunchOverlay = false
+                }
+                .zIndex(100)
             }
-            .task {
-                runSeverityMigrationV2IfNeeded()
-            }
+        }
     }
 
     /// One-time migration: maps legacy severity values 2 → 3 (Light → Moderate)
