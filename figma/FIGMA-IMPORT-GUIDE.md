@@ -22,13 +22,20 @@ We use **Token Studio** (free Figma plugin) to import `tokens.json` into Figma's
 
 ## Step 2 — Import tokens.json
 
-1. Open Token Studio: **Plugins → Token Studio for Figma**
-2. In the Token Studio panel, click the **Settings** gear (bottom-left)
-3. Select **Import / Export → Import from file**
-4. Select `figma/tokens.json` from the Aurae project folder
-5. Click **Load tokens**
+Token Studio v2 (2.x) has a redesigned UI. The welcome screen you see first is not the main workspace.
 
-You should see five token sets in the left panel:
+1. Open Token Studio: **Plugins → Token Studio for Figma**
+2. On the welcome screen, click **"New empty file"** — this opens the main workspace
+3. In the main workspace, look for the **"Load tokens"** or file menu option. In v2 this is typically accessible via:
+   - A **file/folder icon** in the top toolbar, or
+   - A **"..." (more) menu** or hamburger menu icon
+   - Select **"Load from file / folder"** or **"Import"**
+4. Select `figma/tokens.json` from the Aurae project folder
+5. Confirm the import
+
+> **Note:** Token Studio's v2 interface continues to evolve. If the exact option label differs, look for anything referencing "load", "import", or "JSON file" in the menus. The [Token Studio docs](https://docs.tokens.studio) have the latest v2 UI walkthrough if you get stuck.
+
+You should see five token sets appear in the left panel:
 - `Primitives`
 - `Semantic/Light`
 - `Semantic/Dark`
