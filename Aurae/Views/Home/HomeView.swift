@@ -58,7 +58,7 @@ struct HomeView: View {
 
                         // Ambient context card — shows weather conditions at last log
                         ambientContextCard
-                            .padding(.top, AuraeSpacing.lg)
+                            .padding(.top, AuraeSpacing.xxl)
 
                         // Informational sections — always visible, empty states when no data
                         thisMonthSection
@@ -237,49 +237,29 @@ struct HomeView: View {
     @ViewBuilder
     private var logOrActiveCard: some View {
         if let active = activeLog {
-            activeHeadacheCard(log: active)
+            VStack(spacing: AuraeSpacing.md) {
+                activeHeadacheCard(log: active)
+                AuraeButton("Mark as Resolved", style: .hero) {
+                    viewModel.resolveHeadache(active, context: modelContext)
+                }
+                .accessibilityHint("Stops the timer and opens the retrospective form")
+            }
         } else {
-            VStack(spacing: AuraeSpacing.sm) {
-                // Streak card — only when there's a streak to show
+            VStack(spacing: AuraeSpacing.md) {
+                // Primary action first — streak is supporting context, not the hero
+                logActionCard
                 if let days = viewModel.daysSinceLastHeadache {
                     streakCard(days: days)
                 }
-                logActionCard
             }
         }
     }
 
-    /// Card-style "Log Headache" trigger. Tapping opens the modal.
+    /// Primary CTA — uses the hero button style so it reads as the dominant action.
     private var logActionCard: some View {
-        Button { showLogModal = true } label: {
-            HStack(spacing: AuraeSpacing.md) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: AuraeRadius.sm, style: .continuous)
-                        .fill(Color.auraePrimary.opacity(0.12))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(Color.auraePrimary)
-                }
-                .accessibilityHidden(true)
-
-                Text("Log Headache")
-                    .font(.auraeH2)
-                    .foregroundStyle(Color.auraeAdaptivePrimaryText)
-
-                Spacer()
-            }
-            .padding(Layout.cardPadding)
-            .frame(maxWidth: .infinity)
-            .background(Color.auraePrimary.opacity(0.10))
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraePrimary.opacity(0.25), lineWidth: 1)
-            )
+        AuraeButton("Log Headache", style: .hero) {
+            showLogModal = true
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Log Headache")
         .accessibilityHint("Opens the headache logging form")
     }
 
@@ -315,9 +295,9 @@ struct HomeView: View {
         }
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity)
-        .background(Color.auraePrimary.opacity(0.10))
+        .background(Color.auraeAdaptiveCard)
         .clipShape(Rectangle())
-        .overlay(Rectangle().strokeBorder(Color.auraePrimary.opacity(0.20), lineWidth: 1))
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .accessibilityLabel("\(days) \(days == 1 ? "day" : "days") headache-free")
     }
 
@@ -588,22 +568,6 @@ struct HomeView: View {
                 .padding(Layout.cardPadding)
             }
 
-            Divider()
-                .overlay(Color.auraeBorder)
-
-            // Mark as Resolved — inline CTA at card bottom
-            Button {
-                viewModel.resolveHeadache(log, context: modelContext)
-            } label: {
-                Text("Mark as Resolved")
-                    .font(.auraeCalloutBold)
-                    .foregroundStyle(Color.auraePrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, AuraeSpacing.sm)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Mark headache as resolved")
-            .accessibilityHint("Stops the timer and opens the retrospective form")
         }
         .background(Color.auraeAdaptiveCard)
         .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
