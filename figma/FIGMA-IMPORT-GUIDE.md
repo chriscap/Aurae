@@ -78,29 +78,31 @@ Figma's native Modes let you switch Light/Dark on any frame instantly. The goal 
 
 **Key values to fill in for Dark mode:**
 
-| Variable | Light | Dark |
-|---|---|---|
-| `surface/background` | `#FAFBFC` | `#121B28` |
-| `surface/card` | `#FFFFFF` | `#1A2332` |
-| `surface/secondary` | `#EFF6FC` | `#1E2A38` |
-| `surface/subtle` | `#F3F4F6` | `#1A2332` |
-| `surface/elevated` | `#EFF6FC` | `#253545` |
-| `surface/input` | `#FFFFFF` | `#1E2A38` |
-| `surface/soft-teal` | `#E8F2F9` | `#1E2A38` |
-| `text/primary` | `#1F2937` | `#E1E9F2` |
-| `text/secondary` | `#6B7280` | `#8A9BAD` |
-| `text/caption` | `#6B7280` | `#9CAEBE` |
-| `text/on-filled` | `#FFFFFF` | `#121B28` |
-| `action/primary` | `#5B8EBF` | `#6FA8DC` |
-| `action/accessible` | `#3D6A96` | `#7BA8D1` |
-| `action/hero-fill` | `#5B8EBF` | `#6FA8DC` |
-| `action/border` | `#5B8EBF` | `#6FA8DC` |
-| `action/destructive` | `#EF4444` | `#D87A7A` |
-| `severity/mild-surface` | `#D8F0E8` | `#152A22` |
-| `severity/moderate-surface` | `#F2E4D0` | `#2A2012` |
-| `severity/severe-surface` | `#F0D8D8` | `#2E1A1A` |
+For each variable, click the Dark mode cell → click the variable icon → select the Primitive reference shown below. Using Primitive references (rather than raw hex) means token updates propagate automatically.
 
-Severity accent colors (`mild-accent`, `moderate-accent`, `severe-accent`) are the same in both modes.
+| Variable | Light (already set) | Dark — set to this Primitive |
+|---|---|---|
+| `surface/background` | `Primitives/color/neutral/50` | `Primitives/color/neutral/bg-dark` |
+| `surface/card` | `Primitives/color/neutral/white` | `Primitives/color/neutral/card-dark` |
+| `surface/secondary` | `Primitives/color/neutral/150` | `Primitives/color/neutral/secondary-dark` |
+| `surface/subtle` | `Primitives/color/neutral/100` | `Primitives/color/neutral/card-dark` |
+| `surface/elevated` | `Primitives/color/neutral/150` | `Primitives/color/neutral/elevated-dark` |
+| `surface/input` | `Primitives/color/neutral/white` | `Primitives/color/neutral/secondary-dark` |
+| `surface/soft-teal` | `Primitives/color/neutral/200` | `Primitives/color/neutral/secondary-dark` |
+| `text/primary` | `Primitives/color/neutral/700` | `Primitives/color/neutral/800` |
+| `text/secondary` | `Primitives/color/neutral/500` | `Primitives/color/neutral/400` |
+| `text/caption` | `Primitives/color/neutral/500` | `Primitives/color/neutral/450` |
+| `text/on-filled` | `Primitives/color/neutral/white` | `Primitives/color/neutral/bg-dark` |
+| `action/primary` | `Primitives/color/blue/500` | `Primitives/color/blue/dark` |
+| `action/accessible` | `Primitives/color/blue/600` | `Primitives/color/blue/400` |
+| `action/hero-fill` | `Primitives/color/blue/500` | `Primitives/color/blue/dark` |
+| `action/border` | `Primitives/color/blue/500` | `Primitives/color/blue/dark` |
+| `action/destructive` | `Primitives/color/utility/destructive-light` | `Primitives/color/utility/destructive-dark` |
+| `severity/mild-surface` | `Primitives/color/severity/mild-surface-light` | `Primitives/color/severity/mild-surface-dark` |
+| `severity/moderate-surface` | `Primitives/color/severity/moderate-surface-light` | `Primitives/color/severity/moderate-surface-dark` |
+| `severity/severe-surface` | `Primitives/color/severity/severe-surface-light` | `Primitives/color/severity/severe-surface-dark` |
+
+Severity accent colors (`mild-accent`, `moderate-accent`, `severe-accent`) are the same in both modes — no change needed.
 
 6. Once complete, you can delete the now-redundant `Semantic/Dark` collection — all its values live in the `Semantic` collection's Dark mode.
 
