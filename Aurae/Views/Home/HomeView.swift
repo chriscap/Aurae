@@ -21,7 +21,6 @@ struct HomeView: View {
     private var logs: [HeadacheLog]
 
     @AppStorage("hasLoggedFirstHeadache") private var hasLoggedFirstHeadache: Bool = false
-    @AppStorage("userDisplayName") private var userDisplayName: String = ""
 
     @State private var viewModel = HomeViewModel()
     @State private var showLogModal = false
@@ -129,26 +128,7 @@ struct HomeView: View {
             }
             .accessibilityElement(children: .combine)
             Spacer()
-            avatarBadge
         }
-    }
-
-    private var avatarBadge: some View {
-        let initials: String = {
-            let parts = userDisplayName.trimmingCharacters(in: .whitespaces).split(separator: " ")
-            if parts.isEmpty { return "?" }
-            if parts.count == 1 { return String(parts[0].prefix(1)).uppercased() }
-            return (String(parts[0].prefix(1)) + String(parts[parts.count - 1].prefix(1))).uppercased()
-        }()
-        return ZStack {
-            Circle()
-                .fill(Color.auraePrimary.opacity(0.20))
-            Text(initials)
-                .font(.auraeLabel)
-                .foregroundStyle(Color.auraePrimary)
-        }
-        .frame(width: 36, height: 36)
-        .accessibilityLabel("Profile: \(userDisplayName.isEmpty ? "Set your name in Profile" : userDisplayName)")
     }
 
     // MARK: - Brand watermark
