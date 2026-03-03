@@ -107,15 +107,15 @@ struct LogCard: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(Rectangle())
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
         // Severity-tinted surface wash (3 %) — subtle hue shift per level.
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
                 .fill(Color.severityAccent(for: viewModel.severity).opacity(0.03))
         )
         // Severity-tinted hairline border.
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
                 .strokeBorder(Color.severityAccent(for: viewModel.severity).opacity(0.12), lineWidth: 0.5)
         )
         // Unified shadow using shared Layout tokens.
