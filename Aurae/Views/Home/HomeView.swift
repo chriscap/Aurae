@@ -112,13 +112,20 @@ struct HomeView: View {
 
     private var headerSection: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: AuraeSpacing.xxs) {
-                Text(viewModel.formattedDate)
-                    .font(.auraeCaption)
-                    .foregroundStyle(Color.auraeTextSecondary)
+            VStack(alignment: .leading, spacing: AuraeSpacing.xs) {
+                AuraeLogoLockup(
+                    markSize: 20,
+                    wordmarkSize: 14,
+                    wordmarkColor: .auraeTextSecondary,
+                    spacing: 6,
+                    ringCount: 2
+                )
                 Text(viewModel.greeting)
                     .font(.auraeLargeTitle)
                     .foregroundStyle(Color.auraeAdaptivePrimaryText)
+                Text(viewModel.formattedDate)
+                    .font(.auraeCaption)
+                    .foregroundStyle(Color.auraeTextSecondary)
             }
             .accessibilityElement(children: .combine)
             Spacer()
@@ -146,16 +153,14 @@ struct HomeView: View {
 
     // MARK: - Brand watermark
 
-    /// Ghosted "A" mark in the top-right background layer.
+    /// Ghosted logo mark in the top-right background layer.
     /// Purely decorative — sits beneath all content and absorbs no input.
     private var brandWatermark: some View {
         VStack {
             HStack {
                 Spacer()
-                Text("A")
-                    .font(.fraunces(200, weight: .bold))
-                    .foregroundStyle(Color.auraeAdaptivePrimaryText.opacity(0.04))
-                    .offset(x: 44, y: -24)
+                AuraeLogoMark(markSize: 160, ringCount: 3, opacity: 0.05)
+                    .offset(x: 44, y: -20)
                     .accessibilityHidden(true)
             }
             Spacer()
