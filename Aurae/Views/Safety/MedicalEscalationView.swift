@@ -182,7 +182,7 @@ private struct WarningRow: View {
 
             // Icon badge — amber colour signals attention without aggressive red.
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                Rectangle()
                     .fill(Color.auraeAmber.opacity(0.12))
                     .frame(width: 40, height: 40)
                 Image(systemName: item.icon)
@@ -209,7 +209,7 @@ private struct WarningRow: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,

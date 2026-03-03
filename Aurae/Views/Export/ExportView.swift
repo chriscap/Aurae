@@ -97,7 +97,7 @@ struct ExportView: View {
                 )
             }
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+            .clipShape(Rectangle())
             .shadow(
                 color: Color.black.opacity(Layout.cardShadowOpacity),
                 radius: Layout.cardShadowRadius,
@@ -175,7 +175,7 @@ struct ExportView: View {
             .padding(Layout.cardPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.auraeAdaptiveSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+            .clipShape(Rectangle())
 
             // Export button
             AuraeButton(
@@ -290,7 +290,7 @@ struct ExportView: View {
             }
             .padding(Layout.cardPadding)
             .background(Color.auraeAdaptiveSoftTeal)
-            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+            .clipShape(Rectangle())
         }
     }
 
@@ -317,7 +317,7 @@ struct ExportView: View {
                 .padding(Layout.cardPadding)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.auraeAdaptiveSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+                .clipShape(Rectangle())
 
                 // Export CTA — loading hint provided by AuraeButton itself.
                 AuraeButton(
@@ -377,7 +377,7 @@ struct ExportView: View {
             }
             .padding(Layout.cardPadding)
             .background(Color.auraeAdaptiveSoftTeal)
-            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+            .clipShape(Rectangle())
         }
     }
 

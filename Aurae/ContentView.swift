@@ -167,7 +167,6 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: AuraeSpacing.xxl) {
-                    headerSection
                     statsCard
                     preferencesSection
                     subscriptionSection
@@ -176,11 +175,12 @@ struct ProfileView: View {
                     appFooter
                 }
                 .padding(.horizontal, Layout.screenPadding)
-                .padding(.top, AuraeSpacing.xl)
+                .padding(.top, Layout.itemSpacing)
                 .padding(.bottom, AuraeSpacing.xxxl)
             }
             .background(Color.auraeAdaptiveBackground.ignoresSafeArea())
-            .navigationBarHidden(true)
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.large)
         }
         .task {
             selectedDelay = await NotificationService.shared.preferredDelay
@@ -215,21 +215,6 @@ struct ProfileView: View {
     }
 
     // -------------------------------------------------------------------------
-    // MARK: Header
-    // -------------------------------------------------------------------------
-
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: AuraeSpacing.xs) {
-            Text("Profile")
-                .font(.auraeLargeTitle)
-                .foregroundStyle(Color.auraeAdaptivePrimaryText)
-            Text(trackingSinceText)
-                .font(.auraeCaption)
-                .foregroundStyle(Color.auraeTextSecondary)
-        }
-    }
-
-    // -------------------------------------------------------------------------
     // MARK: Stats card
     // -------------------------------------------------------------------------
 
@@ -243,11 +228,8 @@ struct ProfileView: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
     }
 
     private func statColumn(value: String, label: String) -> some View {
@@ -324,11 +306,8 @@ struct ProfileView: View {
                 }
             }
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
-            )
+            .clipShape(Rectangle())
+            .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         }
     }
 
@@ -431,11 +410,8 @@ struct ProfileView: View {
                 }
             }
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
-            )
+            .clipShape(Rectangle())
+            .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         }
     }
 
@@ -503,11 +479,8 @@ struct ProfileView: View {
                 .accessibilityHint("Shows a confirmation before permanently deleting all headache logs")
             }
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
-            )
+            .clipShape(Rectangle())
+            .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         }
     }
 
@@ -596,11 +569,8 @@ struct ProfileView: View {
                 .accessibilityLabel("Version \(versionString)")
             }
             .background(Color.auraeAdaptiveCard)
-            .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                    .strokeBorder(Color.auraeBorder, lineWidth: 1)
-            )
+            .clipShape(Rectangle())
+            .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         }
     }
 

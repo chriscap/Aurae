@@ -58,7 +58,7 @@ struct HomeView: View {
 
                         // Ambient context card — shows weather conditions at last log
                         ambientContextCard
-                            .padding(.top, AuraeSpacing.xxl)
+                            .padding(.top, AuraeSpacing.md)
 
                         // Informational sections — always visible, empty states when no data
                         thisMonthSection
@@ -260,6 +260,7 @@ struct HomeView: View {
         AuraeButton("Log Headache", style: .hero) {
             showLogModal = true
         }
+        .padding(.vertical, AuraeSpacing.sm)
         .accessibilityHint("Opens the headache logging form")
     }
 
@@ -570,11 +571,8 @@ struct HomeView: View {
 
         }
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AuraeRadius.md, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Headache in progress. \(log.severityLevel.label) severity. Started \(log.onsetTime.formatted(date: .omitted, time: .shortened)).")
     }

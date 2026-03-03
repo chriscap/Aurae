@@ -227,7 +227,7 @@ struct LogDetailView: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
     }
 
     // =========================================================================
@@ -284,7 +284,7 @@ struct LogDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
     }
 }
 
@@ -400,7 +400,7 @@ struct WeatherCard: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
@@ -547,7 +547,7 @@ struct HealthCard: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
@@ -842,7 +842,7 @@ private struct RetroReadCard<Content: View>: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,

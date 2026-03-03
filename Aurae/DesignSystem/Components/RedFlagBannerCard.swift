@@ -72,7 +72,7 @@ struct RedFlagBannerCard: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAmber.opacity(urgency == .urgent ? 0.12 : 0.07))
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(headlineText). \(bodyText)")
     }

@@ -291,7 +291,7 @@ struct InsightsView: View {
                             .padding(Layout.cardPadding)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.auraeAdaptiveSecondary.opacity(0.4))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .clipShape(Rectangle())
                         }
                     }
                 }
@@ -312,11 +312,8 @@ struct InsightsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: height)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius, x: 0, y: Layout.cardShadowY
@@ -482,7 +479,7 @@ struct InsightsView: View {
         .padding(.horizontal, Layout.cardPadding)
         .padding(.vertical, 10)
         .background(Color.auraeAccent)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Disclaimer. Patterns are based on your logged data only. For informational purposes. Not medical advice.")
     }
@@ -750,7 +747,7 @@ private struct MedicationOveruseWarningCard: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAmber.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Medication pattern noticed. You've logged acute medication for headache relief more than 10 times this month.")
     }
@@ -773,11 +770,8 @@ private struct InsightCard<Content: View>: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
@@ -798,7 +792,7 @@ private struct StatCard: View {
         VStack(alignment: .leading, spacing: 8) {
             // Decorative icon badge — value and label below carry the content.
             ZStack {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                Rectangle()
                     .fill(iconColor.opacity(0.15))
                     .frame(width: 36, height: 36)
                 Image(systemName: icon)
@@ -821,11 +815,8 @@ private struct StatCard: View {
         .padding(Layout.cardPadding)
         .frame(minWidth: 120, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .clipShape(Rectangle())
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
@@ -982,7 +973,7 @@ private struct WeatherCorrelationRow: View {
             // Decorative icon badge — factor name in the text column carries
             // the semantic meaning for VoiceOver users. (A18-04)
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                Rectangle()
                     .fill(Color.auraePrimary.opacity(0.10 + correlation.strength * 0.10))
                     .frame(width: 40, height: 40)
                 Image(systemName: correlation.sfSymbol)
@@ -1042,7 +1033,7 @@ private struct SleepStatTile: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(color.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }

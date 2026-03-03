@@ -150,7 +150,7 @@ private struct ParagraphBlock: View {
         .padding(Layout.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,

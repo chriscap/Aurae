@@ -329,17 +329,14 @@ struct RetroSectionContainer<Content: View>: View {
             }
         }
         .background(Color.auraeAdaptiveCard)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(
             color: Color.black.opacity(Layout.cardShadowOpacity),
             radius: Layout.cardShadowRadius,
             x: 0,
             y: Layout.cardShadowY
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: Layout.cardRadius, style: .continuous)
-                .strokeBorder(Color.auraeBorder, lineWidth: 1)
-        )
+        .overlay(Rectangle().strokeBorder(Color.auraeBorder, lineWidth: 1))
         .animation(
             reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8),
             value: hasData
@@ -408,7 +405,7 @@ struct RetroChipSection: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
     }
 }
 
@@ -556,7 +553,7 @@ struct RetroStarRating: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
         .accessibilityValue(rating == 0 ? "Not set" : "\(rating) out of 5")
@@ -615,7 +612,7 @@ struct RetroIntensityScale: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
         .accessibilityValue(rating == 0 ? "Not set" : (levelLabel?(rating) ?? "\(rating) out of 5"))
@@ -653,7 +650,7 @@ struct RetroStepper: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
     }
@@ -688,7 +685,7 @@ struct RetroStepperDouble: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(formatValue(value))")
     }
@@ -708,7 +705,7 @@ struct RetroTextField: View {
             .tint(Color.auraePrimary)
             .padding(Layout.cardPadding)
             .background(Color.auraeAdaptiveSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+            .clipShape(Rectangle())
     }
 }
 
@@ -728,7 +725,7 @@ struct RetroToggleRow: View {
         .tint(Color.auraePrimary)
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
     }
 }
 

@@ -119,7 +119,7 @@ struct LifestyleSection: View {
         }
         .padding(Layout.cardPadding)
         .background(Color.auraeAdaptiveSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: Layout.cardRadius - 4, style: .continuous))
+        .clipShape(Rectangle())
     }
 
     // -------------------------------------------------------------------------
